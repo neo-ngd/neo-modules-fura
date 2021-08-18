@@ -1,0 +1,13 @@
+﻿{
+  "PluginConfiguration": {
+    "DbName": "Neo",
+    "Host": "127.0.0.1",
+    "Port": 27017,
+    "User": "",
+    "Password": "",
+    "Log": false,
+    "SleepTime": 10,
+    "WaitTime": 120,
+    "ConnectionString": ""
+  }
+}
