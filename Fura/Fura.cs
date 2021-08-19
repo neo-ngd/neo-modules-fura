@@ -71,12 +71,8 @@ namespace Neo.Plugins
 
         void IPersistencePlugin.OnPersist(NeoSystem system, Block block, DataCache snapshot, IReadOnlyList<Blockchain.ApplicationExecuted> applicationExecutedList)
         {
-            _OnPersist(system, block, snapshot, applicationExecutedList, 0);
-        }
-
-        private void _OnPersist(NeoSystem system, Block block, DataCache snapshot, IReadOnlyList<Blockchain.ApplicationExecuted> applicationExecutedList, uint loopTimes)
-        {
             bool loop = true;
+            uint errLoopTimes = 0;
             while (loop)
             {
                 var state = RegisterPersistInsert(block.Index);
@@ -108,16 +104,19 @@ namespace Neo.Plugins
                                 transaction.SaveAsync(recordPersistModel).Wait();
                                 DBCache.Ins.Save(system, snapshot, transaction);
                                 transaction.CommitAsync().Wait();
+                                loop = false;
+                                var time1 = (DateTime.Now.ToUniversalTime().Ticks - 621355968000000000) / 10000;
+                                Loger.Common(String.Format("OnPersist------ {0} 高度的数据录入耗时 {1} ms", block.Index, time1 - time0));
                             }
                             catch (Exception e)
                             {
-                                DebugModel debugModel = new(string.Format("{0}---ExecApplicationExecuted----block: {1}, loopTimes:{2}, error: {3}", Settings.Default.PName, block.Index, loopTimes, e));
-                                debugModel.SaveAsync().Wait();
-                                RecordPersistModel.Delete(block.Index);
                                 transaction.AbortAsync().Wait();
-                                if (loopTimes < 10)
+                                RecordPersistModel.Delete(block.Index);
+                                errLoopTimes++;
+                                DebugModel debugModel = new(string.Format("{0}---ExecApplicationExecuted----block: {1}, loopTimes:{2}, error: {3}", Settings.Default.PName, block.Index, errLoopTimes, e));
+                                debugModel.SaveAsync().Wait();
+                                if (errLoopTimes < 10)
                                 {
-                                    _OnPersist(system, block, snapshot, applicationExecutedList, loopTimes++);
                                     System.Threading.Thread.Sleep(Settings.Default.SleepTime * 100);
                                 }
                                 else
@@ -126,9 +125,7 @@ namespace Neo.Plugins
                                 }
                             }
                         }
-                        var time1 = (DateTime.Now.ToUniversalTime().Ticks - 621355968000000000) / 10000;
-                        Loger.Common(String.Format("OnPersist------ {0} 高度的数据录入耗时 {1} ms", block.Index, time1 - time0));
-                        loop = false;
+
                         break;
                     case EnumRecordState.Pending:
                     default:
@@ -142,6 +139,7 @@ namespace Neo.Plugins
         void IPersistencePlugin.OnCommit(NeoSystem system, Block block, DataCache snapshot)
         {
             bool loop = true;
+            uint errLoopTimes = 0;
             while (loop)
             {
                 var state = RegisterCommitInsert(block.Index);
@@ -153,10 +151,33 @@ namespace Neo.Plugins
                         break;
                     case EnumRecordState.None:
                         var time0 = (DateTime.Now.ToUniversalTime().Ticks - 621355968000000000) / 10000;
-                        ExecBlock(system, block, snapshot);
-                        var time1 = (DateTime.Now.ToUniversalTime().Ticks - 621355968000000000) / 10000;
-                        Loger.Common(string.Format("OnCommit------ {0} 高度的数据录入耗时 {1} ms", block.Index, time1 - time0));
-                        loop = false;
+                        using (var transaction = DB.Transaction())
+                        {
+                            try
+                            {
+                                ExecBlock(transaction, system, block, snapshot);
+                                var time1 = (DateTime.Now.ToUniversalTime().Ticks - 621355968000000000) / 10000;
+                                Loger.Common(string.Format("OnCommit------ {0} 高度的数据录入耗时 {1} ms", block.Index, time1 - time0));
+                                loop = false;
+                            }
+                            catch (Exception e)
+                            {
+                                transaction.AbortAsync().Wait();
+                                RecordCommitModel.Delete(block.Index);
+                                errLoopTimes++;
+                                DebugModel debugModel = new(string.Format("{0}---ExecBlock----block: {1}, loopTimes:{2}, error: {3}", Settings.Default.PName, block.Index, errLoopTimes, e));
+                                debugModel.SaveAsync().Wait();
+                                if (errLoopTimes < 10)
+                                {
+                                    System.Threading.Thread.Sleep(Settings.Default.SleepTime * 100);
+                                }
+                                else
+                                {
+                                    throw;
+                                }
+                            }
+                        }
+
                         break;
                     case EnumRecordState.Pending:
                     default:
@@ -165,7 +186,6 @@ namespace Neo.Plugins
                         continue;
                 }
             }
-
         }
 
         /// <summary>
@@ -275,7 +295,7 @@ namespace Neo.Plugins
             }
         }
 
-        void ExecBlock(NeoSystem system, Block block, DataCache snapshot)
+        void ExecBlock(MongoDB.Entities.Transaction transaction, NeoSystem system, Block block, DataCache snapshot)
         {
             //如果这个高度的block数据能在数据库中查到，证明已经录入过了（防止重启重录）
             BlockModel blockModel = BlockModel.Get(block.Hash);
@@ -283,71 +303,63 @@ namespace Neo.Plugins
             {
                 return;
             }
-            using var transaction = DB.Transaction();
-            try
+
+            BlockModel bm = new(block);
+            HeaderModel hm = new(block.Header);
+            long sysFee = 0;
+            long netFee = 0;
+            TransactionModel[] tms = new TransactionModel[block.Transactions.Length];
+            for (var i = 0; i < block.Transactions.Length; i++)
             {
-                BlockModel bm = new(block);
-                HeaderModel hm = new(block.Header);
-                long sysFee = 0;
-                long netFee = 0;
-                TransactionModel[] tms = new TransactionModel[block.Transactions.Length];
-                for (var i = 0; i < block.Transactions.Length; i++)
+                var t = block.Transactions[i];
+                sysFee += t.SystemFee;
+                netFee += t.NetworkFee;
+                TransactionModel tm = new(t, block.Hash, block.Timestamp, block.Index);
+                tms[i] = tm;
+            }
+            bm.SystemFee = sysFee;
+            bm.NetworkFee = netFee;
+            transaction.SaveAsync(bm).Wait();
+            transaction.SaveAsync(hm).Wait();
+            if (tms.Length > 0)
+            {
+                transaction.SaveAsync(tms).Wait();
+            }
+            //每隔一定的块更新committee表
+            if (block.Index % system.Settings.CommitteeMembersCount == 0)
+            {
+                Loger.Common(string.Format("blockindex:{0},更新committee", block.Index));
+                //先把上一批的重置了
+                List<CandidateModel> candidateModel_old = CandidateModel.GetByIsCommittee(true);
+                if (candidateModel_old.Count > 0)
                 {
-                    var t = block.Transactions[i];
-                    sysFee += t.SystemFee;
-                    netFee += t.NetworkFee;
-                    TransactionModel tm = new(t, block.Hash, block.Timestamp, block.Index);
-                    tms[i] = tm;
+                    candidateModel_old = candidateModel_old.Select(c => { c.IsCommittee = false; return c; }).ToList();
+                    transaction.SaveAsync(candidateModel_old).Wait();
                 }
-                bm.SystemFee = sysFee;
-                bm.NetworkFee = netFee;
-                transaction.SaveAsync(bm).Wait();
-                transaction.SaveAsync(hm).Wait();
-                if(tms.Length > 0)
+                //更新新的一批次
+                ECPoint[] committees = Neo.SmartContract.Native.NeoToken.NEO.GetCommittee(snapshot);
+                CandidateModel[] candidateModels_new = committees.Select(c =>
                 {
-                    transaction.SaveAsync(tms).Wait();
-                }
-                //每隔一定的块更新committee表
-                if (block.Index % system.Settings.CommitteeMembersCount == 0)
-                {
-                    Loger.Common(string.Format("blockindex:{0},更新committee", block.Index));
-                    //先把上一批的重置了
-                    List<CandidateModel> candidateModel_old = CandidateModel.GetByIsCommittee(true);
-                    if (candidateModel_old.Count > 0)
+                    var hash = Contract.CreateSignatureContract(c).ScriptHash;
+                    var candidateModel = CandidateModel.Get(hash);
+                    if (candidateModel is null)
                     {
-                        candidateModel_old = candidateModel_old.Select(c => { c.IsCommittee = false; return c; }).ToList();
-                        transaction.SaveAsync(candidateModel_old).Wait();
+                        var votes = Neo.Plugins.VM.Helper.GetCandidateVotes(c, system, snapshot);
+                        candidateModel = new CandidateModel(hash, true, votes.ToString(), true);
                     }
-                    //更新新的一批次
-                    ECPoint[] committees = Neo.SmartContract.Native.NeoToken.NEO.GetCommittee(snapshot);
-                    CandidateModel[] candidateModels_new = committees.Select(c =>
-                    {
-                        var hash = Contract.CreateSignatureContract(c).ScriptHash;
-                        var candidateModel = CandidateModel.Get(hash);
-                        if (candidateModel is null)
-                        {
-                            var votes = Neo.Plugins.VM.Helper.GetCandidateVotes(c, system, snapshot);
-                            candidateModel = new CandidateModel(hash, true, votes.ToString(), true);
-                        }
-                        candidateModel.IsCommittee = true;
-                        return candidateModel;
-                    }).ToArray();
-                    transaction.SaveAsync(candidateModels_new).Wait();
-                }
-
-                //将此块的record标记为完成
-                RecordCommitModel recordCommitModel = RecordCommitModel.Get(block.Index);
-                recordCommitModel.State = EnumRecordState.Confirm.ToString();
-                transaction.SaveAsync(recordCommitModel).Wait();
-
-                transaction.CommitAsync().Wait();
+                    candidateModel.IsCommittee = true;
+                    return candidateModel;
+                }).ToArray();
+                transaction.SaveAsync(candidateModels_new).Wait();
             }
-            catch (Exception e)
-            {
-                DebugModel debugModel = new(string.Format("{0}---ExecBlock----block: {1} error: {2}", Settings.Default.PName, block.Index, e));
-                debugModel.SaveAsync().Wait();
-                transaction.AbortAsync().Wait();
-            }
+
+            //将此块的record标记为完成
+            RecordCommitModel recordCommitModel = RecordCommitModel.Get(block.Index);
+            recordCommitModel.State = EnumRecordState.Confirm.ToString();
+            transaction.SaveAsync(recordCommitModel).Wait();
+
+            transaction.CommitAsync().Wait();
+
         }
     }
 }
