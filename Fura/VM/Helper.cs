@@ -55,7 +55,8 @@ namespace Neo.Plugins.VM
                         //再下一个是pack
                         ++index;
                         //再下一个是参数的数量
-                        paramsCount = Opcode2PushNumber(instructions[++index].OpCode);
+                        var ins = instructions[++index];
+                        paramsCount = Opcode2PushNumber(ins.OpCode, ins.Operand.Span.ToArray());
                     }
                     //接下来获取参数
                     string[] hexParams = new string[paramsCount];
@@ -107,7 +108,7 @@ namespace Neo.Plugins.VM
             }
         }
 
-        public static int Opcode2PushNumber(OpCode opCode)
+        public static int Opcode2PushNumber(OpCode opCode, byte[] bytes)
         {
             switch (opCode)
             {
@@ -129,6 +130,14 @@ namespace Neo.Plugins.VM
                 case OpCode.PUSH15:
                 case OpCode.PUSH16:
                     return int.Parse(opCode.ToString().Substring(4));
+                case OpCode.PUSHM1:
+                    return -1;
+                case OpCode.PUSHINT8:
+                    return bytes[0];
+                case OpCode.PUSHINT16:
+                    return BitConverter.ToInt16(bytes);
+                case OpCode.PUSHINT32:
+                    return BitConverter.ToInt32(bytes);
                 default:
                     throw new Exception("unhandle opcode:" + opCode.ToString());
 
