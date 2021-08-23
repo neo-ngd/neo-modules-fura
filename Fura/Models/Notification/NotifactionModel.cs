@@ -73,15 +73,30 @@ namespace Neo.Plugins.Models
 
         public NotificationStateValueModel(Neo.VM.Types.StackItem item)
         {
-            var json = item.ToJson();
-            Type = json["type"]?.GetString();
-            if (Type == "Array")
+            try
             {
-                Value = json["value"]?.ToString();
+                var json = item.ToJson();
+                Type = json["type"]?.GetString();
+                if (Type == "Array")
+                {
+                    Value = json["value"]?.ToString();
+                }
+                else if (Type == "Boolean")
+                {
+                    Value = json["value"]?.GetBoolean().ToString();
+                }
+                else if(Type == "ByteString")
+                {
+                    Value = json["value"]?.GetString();
+                }
+                else
+                {
+                    Value = json["value"]?.AsString();
+                }
             }
-            else
+            catch
             {
-                Value = json["value"]?.GetString();
+                Value = "";
             }
         }
 
