@@ -185,8 +185,10 @@ namespace Neo.Plugins
                 return;
             }
 
-            var balances = Neo.Plugins.VM.Helper.GetNep11BalanceOf(system, snapshot, notificationModel.ContractHash, tokenId, from, to);
-            DBCache.Ins.cacheNep11TransferNotification.Add(txid, blockHash, timestamp, notificationModel.ContractHash, tokenId, from, to, value, balances[0], balances[1]);
+            var balance_from = Neo.Plugins.VM.Helper.GetNep11BalanceOf(system, snapshot, notificationModel.ContractHash, tokenId, from);
+            var balance_to = Neo.Plugins.VM.Helper.GetNep11BalanceOf(system, snapshot, notificationModel.ContractHash, tokenId, to);
+
+            DBCache.Ins.cacheNep11TransferNotification.Add(txid, blockHash, timestamp, notificationModel.ContractHash, tokenId, from, to, value, balance_from, balance_to);
 
             DBCache.Ins.cacheAddressAsset.AddNeedUpdate(from, notificationModel.ContractHash, tokenId);
             DBCache.Ins.cacheAddressAsset.AddNeedUpdate(to, notificationModel.ContractHash, tokenId);

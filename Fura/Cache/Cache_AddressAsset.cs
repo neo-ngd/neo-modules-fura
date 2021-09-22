@@ -57,7 +57,7 @@ namespace Neo.Plugins.Cache
                 }
                 else
                 {
-                    balance = Neo.Plugins.VM.Helper.GetNep11BalanceOf(system, snapshot, list[i].Asset, list[i].Tokenid, list[i].Address)[0];
+                    balance = Neo.Plugins.VM.Helper.GetNep11BalanceOf(system, snapshot, list[i].Asset, list[i].Tokenid, list[i].Address);
                 }
                 AddOrUpdate(list[i].Address, list[i].Asset, balance, list[i].Tokenid);
             });
