@@ -311,7 +311,21 @@ namespace Neo.Plugins.VM
                 //如果是有精度的就查询balanceof
                 using (ScriptBuilder sb = new ScriptBuilder())
                 {
-                    sb.EmitDynamicCall(asset, "balanceOf", addr == null ? UInt160.Parse("0x1100000000000000000220000000000000000011") : addr, Convert.FromBase64String(TokenId));
+                    try
+                    {
+                        try
+                        {
+                            sb.EmitDynamicCall(asset, "balanceOf", addr == null ? UInt160.Parse("0x1100000000000000000220000000000000000011") : addr, Convert.FromBase64String(TokenId));
+                        }
+                        catch (Exception e)
+                        {
+                            sb.EmitDynamicCall(asset, "balanceOf", addr == null ? UInt160.Parse("0x1100000000000000000220000000000000000011") : addr, Convert.FromHexString(TokenId));
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        sb.EmitDynamicCall(asset, "balanceOf", addr == null ? UInt160.Parse("0x1100000000000000000220000000000000000011") : addr, TokenId);
+                    }
                     script = sb.ToArray();
                 }
                 using (ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, settings: system.Settings))
