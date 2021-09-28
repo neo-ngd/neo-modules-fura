@@ -253,10 +253,11 @@ namespace Neo.Plugins.VM
 
         }
 
-        public static BigInteger[] GetNep11BalanceOf(NeoSystem system, DataCache snapshot, UInt160 asset, string TokenId, params UInt160[] addrs)
+        public static BigInteger GetNep11BalanceOf(NeoSystem system, DataCache snapshot, UInt160 asset, string TokenId, UInt160 addr)
         {
             byte[] script;
             BigInteger decimals = 0;
+            BigInteger balanceOf = 0;
             //先获取decimals来确定是不是可以分割的nft，如果是可以分割的nft，那么balanceOf（usr，tokenid），反为balanceOf（usr）
             using (ScriptBuilder sb = new ScriptBuilder())
             {
@@ -271,36 +272,71 @@ namespace Neo.Plugins.VM
                     decimals = engine.ResultStack.Pop().GetInteger();
                 }
             }
-            BigInteger[] balanceOfs = new BigInteger[addrs.Length];
-            //没有精度的nep11的balance全部认为是1
+            //如果精度是0，那么tokenid一定只有一个地址拥有。查询ownerOf看是不是属于addr，是就返回1，不是就返回0
             if (decimals == 0)
             {
-                for (var i = balanceOfs.Length - 1; i >= 0; i--)
+                //如果是有精度的就查询balanceof
+                using (ScriptBuilder sb = new ScriptBuilder())
                 {
-                    balanceOfs[i] = 1;
-                }
-                return balanceOfs;
-            }
- 
-            using (ScriptBuilder sb = new ScriptBuilder())
-            {
-                foreach (var addr in addrs)
-                {
-                    sb.EmitDynamicCall(asset, "balanceOf", addr == null ? UInt160.Parse("0x1100000000000000000220000000000000000011") : addr, TokenId);
-                }
-                script = sb.ToArray();
-            }
-            using (ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, settings: system.Settings))
-            {
-                if (engine.State.HasFlag(VMState.HALT))
-                {
-                    for (var i = balanceOfs.Length - 1; i >= 0; i--)
+                    try
                     {
-                        balanceOfs[i] = engine.ResultStack.Pop().GetInteger();
+                        try
+                        {
+                            sb.EmitDynamicCall(asset, "ownerOf", Convert.FromBase64String(TokenId));
+
+                        }
+                        catch(Exception e)
+                        {
+                            sb.EmitDynamicCall(asset, "ownerOf", Convert.FromHexString(TokenId));
+                        }
+                    }
+                    catch(Exception e)
+                    {
+                        
+                        sb.EmitDynamicCall(asset, "ownerOf", TokenId);
+                    }
+                    script = sb.ToArray();
+                }
+                using (ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, settings: system.Settings))
+                {
+                    if (engine.State.HasFlag(VMState.HALT))
+                    {
+                        var owner = new UInt160(engine.ResultStack.Pop().GetSpan().ToArray());
+                        balanceOf = owner == addr ? 1 : 0;
                     }
                 }
             }
-            return balanceOfs;
+            else
+            {
+                //如果是有精度的就查询balanceof
+                using (ScriptBuilder sb = new ScriptBuilder())
+                {
+                    try
+                    {
+                        try
+                        {
+                            sb.EmitDynamicCall(asset, "balanceOf", addr == null ? UInt160.Parse("0x1100000000000000000220000000000000000011") : addr, Convert.FromBase64String(TokenId));
+                        }
+                        catch (Exception e)
+                        {
+                            sb.EmitDynamicCall(asset, "balanceOf", addr == null ? UInt160.Parse("0x1100000000000000000220000000000000000011") : addr, Convert.FromHexString(TokenId));
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        sb.EmitDynamicCall(asset, "balanceOf", addr == null ? UInt160.Parse("0x1100000000000000000220000000000000000011") : addr, TokenId);
+                    }
+                    script = sb.ToArray();
+                }
+                using (ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, settings: system.Settings))
+                {
+                    if (engine.State.HasFlag(VMState.HALT))
+                    {
+                        balanceOf = engine.ResultStack.Pop().GetInteger();
+                    }
+                }
+            }
+            return balanceOf;
         }
 
 
