@@ -258,6 +258,7 @@ namespace Neo.Plugins.VM
         public static string GetNep11Properties(NeoSystem system, DataCache snapshot, UInt160 asset, string TokenId)
         {
             byte[] script;
+            TokenId = "X3685uxIZRNoROOSfzBXJtUWSDMF8jEONGInRzb0KDg=";
             using (ScriptBuilder sb = new ScriptBuilder())
             {
                 try
@@ -298,16 +299,25 @@ namespace Neo.Plugins.VM
                         writer.WriteStartObject();
                         foreach (var element in values.EnumerateArray())
                         {
-                            var type = element.GetProperty("key").GetProperty("type").GetString();
-                            string name = element.GetProperty("value").GetString();
-                            switch (type)
+                            var key = GetValueByType(element.GetProperty("key"));
+                            string value = "";
+                            try
                             {
-                                case "ByteString":
-                                    name = Encoding.UTF8.GetString(Convert.FromBase64String(name));
-                                    break;
+                                if (key == "name" || key == "description" || key == "image" || key == "tokenURI")
+                                {
+                                    value = GetValueByType(element.GetProperty("value"));
+                                }
+                                else
+                                {
+                                    value = element.GetProperty("value").GetProperty("value").GetString();
+                                }
                             }
-                            var value = element.GetProperty("value").GetProperty("value").GetString();
-                            writer.WriteString(name, value);
+                            catch
+                            {
+                                DebugModel debugModel = new(string.Format("GetNep11BalanceOf----asset: {0} ----  TokenId {1} ---- Properties {2}", asset, TokenId, properties));
+                                debugModel.SaveAsync().Wait();
+                            }
+                            writer.WriteString(key, value);
                         }
                         writer.WriteEndObject();
                     }
@@ -315,6 +325,19 @@ namespace Neo.Plugins.VM
                 }
             }
             return properties;
+        }
+
+        public static string GetValueByType(JsonElement element)
+        {
+            var type = element.GetProperty("type").GetString();
+            string value = element.GetProperty("value").GetString();
+            switch (type)
+            {
+                case "ByteString":
+                    value = Encoding.UTF8.GetString(Convert.FromBase64String(value));
+                    break;
+            }
+            return value;
         }
 
         public static BigInteger GetNep11BalanceOf(NeoSystem system, DataCache snapshot, UInt160 asset, string TokenId, UInt160 addr)
