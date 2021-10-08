@@ -179,7 +179,16 @@ namespace Neo.Plugins
                 succ = succ && UInt160.TryParse(Convert.FromBase64String(notificationModel.State.Values[1].Value).Reverse().ToArray().ToHexString(), out to);
             }
             succ = succ && BigInteger.TryParse(notificationModel.State.Values[2].Value, out value);
-            string tokenId = notificationModel.State.Values[3].Value;
+            string tokenId = "";
+            if (notificationModel.State.Values[3].Type == "Integer")  //需要转换一下
+            {
+                tokenId = Convert.ToBase64String(BigInteger.Parse(notificationModel.State.Values[3].Value).ToByteArray());
+            }
+            else
+            {
+                tokenId = notificationModel.State.Values[3].Value;
+            }
+
             if (!succ)
             {
                 return;
@@ -194,7 +203,7 @@ namespace Neo.Plugins
             DBCache.Ins.cacheAddressAsset.AddNeedUpdate(to, notificationModel.ContractHash, tokenId);
 
             DBCache.Ins.cacheAddress.Add(block.Timestamp, from, to);
-
+            DBCache.Ins.cacheNep11Properties.AddNeedUpdate(notificationModel.ContractHash, tokenId);
             if (from == UInt160.Zero || from is null) //如果from为0x0，意味着发行代币，这个时候需要更新资产的总量
             {
                 DBCache.Ins.cacheAsset.AddNeedUpdate(notificationModel.ContractHash, block.Timestamp, notificationModel.Txid);

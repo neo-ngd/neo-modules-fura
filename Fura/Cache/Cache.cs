@@ -45,6 +45,7 @@ namespace Neo.Plugins.Cache
         public CacheExecution cacheExecution { get; }
         public CacheNotification cacheNotification { get; }
         public CacheGasMintBurn cacheGasMintBurn { get; }
+        public CacheNep11Properties cacheNep11Properties { get; }
         private List<IDBCache> caches;
         public DBCache()
         {
@@ -88,6 +89,9 @@ namespace Neo.Plugins.Cache
 
             cacheGasMintBurn = new CacheGasMintBurn();
             caches.Add(cacheGasMintBurn);
+
+            cacheNep11Properties = new CacheNep11Properties();
+            caches.Add(cacheNep11Properties);
 
         }
 
