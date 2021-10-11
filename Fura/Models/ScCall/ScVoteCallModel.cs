@@ -1,4 +1,6 @@
-﻿using MongoDB.Bson.Serialization.Attributes;
+﻿using System.Threading.Tasks;
+using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Driver;
 using MongoDB.Entities;
 using Neo.Plugins.Attribute;
 
@@ -25,6 +27,8 @@ namespace Neo.Plugins.Models
         [BsonElement("candidate")]
         public UInt160 Candidate { get; set; } //address
 
+        public ScVoteCallModel() { }
+
         public ScVoteCallModel(UInt256 txid, uint blockNumber, UInt160 voter, UInt160 candidate, string candidatePubKey)
         {
             Txid = txid;
@@ -32,6 +36,14 @@ namespace Neo.Plugins.Models
             Voter = voter;
             CandidatePubKey = candidatePubKey;
             Candidate = candidate;
+        }
+
+        public async static Task InitCollectionAndIndex()
+        {
+            await DB.CreateCollection<ScVoteCallModel>(new CreateCollectionOptions<ScVoteCallModel>());
+            await DB.Index<ScVoteCallModel>().Key(a => a.Voter, KeyType.Ascending).Option(o => { o.Name = "_voter_"; }).CreateAsync();
+            await DB.Index<ScVoteCallModel>().Key(a => a.Txid, KeyType.Ascending).Option(o => { o.Name = "_txid_"; }).CreateAsync();
+            await DB.Index<ScVoteCallModel>().Key(a => a.Candidate, KeyType.Ascending).Option(o => { o.Name = "_candidate_"; }).CreateAsync();
         }
     }
 }

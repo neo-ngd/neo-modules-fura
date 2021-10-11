@@ -258,7 +258,6 @@ namespace Neo.Plugins.VM
         public static string GetNep11Properties(NeoSystem system, DataCache snapshot, UInt160 asset, string TokenId)
         {
             byte[] script;
-            TokenId = "X3685uxIZRNoROOSfzBXJtUWSDMF8jEONGInRzb0KDg=";
             using (ScriptBuilder sb = new ScriptBuilder())
             {
                 try
@@ -279,30 +278,24 @@ namespace Neo.Plugins.VM
                 {
                     properties = engine.ResultStack.Pop().ToJson().ToString();
                 }
-                else
-                {
-                    DebugModel debugModel = new(string.Format("GetNep11BalanceOf----asset: {0} ----  TokenId {1}", asset, TokenId));
-                    debugModel.SaveAsync().Wait();
-                }
             }
             if (!string.IsNullOrEmpty(properties))
             {
-                using (var stream = new MemoryStream())
+                try
                 {
-                    using (var writer = new Utf8JsonWriter(stream, new JsonWriterOptions() { Indented = true }))
+                    using (var stream = new MemoryStream())
                     {
-                        var document = JsonDocument.Parse(properties);
-                        JsonElement values;
-                        var suc = document.RootElement.TryGetProperty("value", out values);
-                        Console.WriteLine(suc);
-                        if (!suc) return properties;
-                        writer.WriteStartObject();
-                        foreach (var element in values.EnumerateArray())
+                        using (var writer = new Utf8JsonWriter(stream, new JsonWriterOptions() { Indented = true }))
                         {
-                            var key = GetValueByType(element.GetProperty("key"));
-                            string value = "";
-                            try
+                            var document = JsonDocument.Parse(properties);
+                            JsonElement values;
+                            var suc = document.RootElement.TryGetProperty("value", out values);
+                            if (!suc) return properties;
+                            writer.WriteStartObject();
+                            foreach (var element in values.EnumerateArray())
                             {
+                                var key = GetValueByType(element.GetProperty("key"));
+                                string value = "";
                                 if (key == "name" || key == "description" || key == "image" || key == "tokenURI")
                                 {
                                     value = GetValueByType(element.GetProperty("value"));
@@ -311,17 +304,17 @@ namespace Neo.Plugins.VM
                                 {
                                     value = element.GetProperty("value").GetProperty("value").GetString();
                                 }
+                                writer.WriteString(key, value);
                             }
-                            catch
-                            {
-                                DebugModel debugModel = new(string.Format("GetNep11BalanceOf----asset: {0} ----  TokenId {1} ---- Properties {2}", asset, TokenId, properties));
-                                debugModel.SaveAsync().Wait();
-                            }
-                            writer.WriteString(key, value);
+                            writer.WriteEndObject();
                         }
-                        writer.WriteEndObject();
+                        properties = Encoding.UTF8.GetString(stream.ToArray());
                     }
-                    properties = Encoding.UTF8.GetString(stream.ToArray());
+                }
+                catch
+                {
+                    DebugModel debugModel = new(string.Format("GetNep11BalanceOf----asset: {0} ----  TokenId {1} ---- Properties {2}", asset, TokenId, properties));
+                    debugModel.SaveAsync().Wait();
                 }
             }
             return properties;
@@ -383,11 +376,6 @@ namespace Neo.Plugins.VM
                         var owner = new UInt160(engine.ResultStack.Pop().GetSpan().ToArray());
                         balanceOf = owner == addr ? 1 : 0;
                     }
-                    else
-                    {
-                        DebugModel debugModel = new(string.Format("GetNep11BalanceOf----asset: {0} ---- addr {1} ---- TokenId {2}", asset, addr, TokenId));
-                        debugModel.SaveAsync().Wait();
-                    }
                 }
             }
             else
@@ -410,11 +398,6 @@ namespace Neo.Plugins.VM
                     if (engine.State.HasFlag(VMState.HALT))
                     {
                         balanceOf = engine.ResultStack.Pop().GetInteger();
-                    }
-                    else
-                    {
-                        DebugModel debugModel = new(string.Format("GetNep11BalanceOf----asset: {0} ---- addr {1} ---- TokenId {2}", asset, addr, TokenId));
-                        debugModel.SaveAsync().Wait();
                     }
                 }
             }

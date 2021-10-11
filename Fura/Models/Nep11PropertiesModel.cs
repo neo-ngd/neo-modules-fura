@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Threading.Tasks;
 using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Driver;
 using MongoDB.Entities;
 using Neo.Network.P2P.Payloads;
 using Neo.Plugins.Attribute;
@@ -19,6 +21,7 @@ namespace Neo.Plugins.Models
         [BsonElement("properties")]
         public string Properties { get; set; }
 
+        public Nep11PropertiesModel() { }
 
         public Nep11PropertiesModel(UInt160 asset, string tokenid, string properties)
         {
@@ -31,6 +34,12 @@ namespace Neo.Plugins.Models
         {
             Nep11PropertiesModel nep11PropertiesModel = DB.Find<Nep11PropertiesModel>().Match(a => a.Asset == asset && a.TokenId == tokenid).ExecuteFirstAsync().Result;
             return nep11PropertiesModel;
+        }
+
+        public async static Task InitCollectionAndIndex()
+        {
+            await DB.CreateCollection<Nep11PropertiesModel>(new CreateCollectionOptions<Nep11PropertiesModel>());
+            await DB.Index<Nep11PropertiesModel>().Key(a => a.Asset, KeyType.Ascending).Key(a => a.TokenId, KeyType.Ascending).Option(o => { o.Name = "_asset_tokenid_unique_"; o.Unique = true; }).CreateAsync();
         }
     }
 }
