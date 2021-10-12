@@ -279,58 +279,124 @@ namespace Neo.Plugins.VM
                     properties = engine.ResultStack.Pop().ToJson().ToString();
                 }
             }
+
             if (!string.IsNullOrEmpty(properties))
             {
                 try
                 {
-                    using (var stream = new MemoryStream())
+                    var document = JsonDocument.Parse(properties);
+                    JsonElement values;
+                    var suc = document.RootElement.TryGetProperty("value", out values);
+                    if (!suc) return properties;
+                    switch (values.ValueKind)
                     {
-                        using (var writer = new Utf8JsonWriter(stream, new JsonWriterOptions() { Indented = true }))
-                        {
-                            var document = JsonDocument.Parse(properties);
-                            JsonElement values;
-                            var suc = document.RootElement.TryGetProperty("value", out values);
-                            if (!suc) return properties;
-                            writer.WriteStartObject();
-                            foreach (var element in values.EnumerateArray())
+                        case JsonValueKind.Array:
+                            using (var stream = new MemoryStream())
                             {
-                                var key = GetValueByType(element.GetProperty("key"));
-                                string value = "";
-                                if (key == "name" || key == "description" || key == "image" || key == "tokenURI")
+                                using (var writer = new Utf8JsonWriter(stream, new JsonWriterOptions() { Indented = true }))
                                 {
-                                    value = GetValueByType(element.GetProperty("value"));
+                                    writer.WriteStartObject();
+                                    foreach (var element in values.EnumerateArray())
+                                    {
+                                        var key = GetValue(element.GetProperty("key"));
+                                        WriteObject(writer, key, element.GetProperty("value"));
+                                    }
+                                    writer.WriteEndObject();
                                 }
-                                else
-                                {
-                                    value = element.GetProperty("value").GetProperty("value").GetString();
-                                }
-                                writer.WriteString(key, value);
+                                properties = Encoding.UTF8.GetString(stream.ToArray());
                             }
-                            writer.WriteEndObject();
-                        }
-                        properties = Encoding.UTF8.GetString(stream.ToArray());
+                            break;
+                        case JsonValueKind.String:
+                            byte[] bts;
+                            suc = values.TryGetBytesFromBase64(out bts);
+                            if (suc)
+                            {
+                                properties = Encoding.UTF8.GetString(bts);
+                            }
+                            break;
                     }
+
                 }
                 catch
                 {
-                    DebugModel debugModel = new(string.Format("GetNep11BalanceOf----asset: {0} ----  TokenId {1} ---- Properties {2}", asset, TokenId, properties));
+                    DebugModel debugModel = new(string.Format("GetNep11Properties----asset: {0} ----  TokenId {1} ---- Properties {2}", asset, TokenId, properties));
                     debugModel.SaveAsync().Wait();
                 }
             }
             return properties;
         }
 
-        public static string GetValueByType(JsonElement element)
+        public static string TryParseByteString(string str)
+        {
+            try
+            {
+                str = Encoding.UTF8.GetString(Convert.FromBase64String(str));
+            }
+            catch
+            {
+
+            }
+
+            return str;
+        }
+
+        public static string GetValue(JsonElement element)
         {
             var type = element.GetProperty("type").GetString();
-            string value = element.GetProperty("value").GetString();
+            string value = "";
             switch (type)
             {
                 case "ByteString":
-                    value = Encoding.UTF8.GetString(Convert.FromBase64String(value));
+                    value = TryParseByteString(element.GetProperty("value").GetString());
+                    break;
+                case "Integer":
+                    value = element.GetProperty("value").GetString();
                     break;
             }
             return value;
+        }
+
+        public static void WriteObject(Utf8JsonWriter writer, string key, JsonElement element)
+        {
+            var type = element.GetProperty("type").GetString();
+            string value = "";
+            switch (type)
+            {
+                case "ByteString":
+                    value = TryParseByteString(element.GetProperty("value").GetString());
+                    writer.WriteString(key, value);
+                    break;
+                case "Integer":
+                    value = element.GetProperty("value").GetString();
+                    writer.WriteString(key, value);
+                    break;
+                case "Map":
+                    var values = element.GetProperty("value");
+                    foreach (var _e in values.EnumerateArray())
+                    {
+                        var _key = GetValue(_e.GetProperty("key"));
+                        WriteObject(writer, _key, _e.GetProperty("value"));
+                    }
+                    break;
+                case "Array":
+                    writer.WriteStartObject(key);
+                    foreach (var _e in element.GetProperty("value").EnumerateArray())
+                    {
+                        JsonElement jsonElement;
+                        var suc = _e.TryGetProperty("key", out jsonElement);
+                        if (suc)
+                        {
+                            var _key = GetValue(jsonElement);
+                            WriteObject(writer, _key, _e.GetProperty("value"));
+                        }
+                        else
+                        {
+                            WriteObject(writer, "", _e);
+                        }
+                    }
+                    writer.WriteEndObject();
+                    break;
+            }
         }
 
         public static BigInteger GetNep11BalanceOf(NeoSystem system, DataCache snapshot, UInt160 asset, string TokenId, UInt160 addr)
