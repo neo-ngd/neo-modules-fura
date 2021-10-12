@@ -363,7 +363,10 @@ namespace Neo.Plugins.VM
             switch (type)
             {
                 case "ByteString":
-                    value = TryParseByteString(element.GetProperty("value").GetString());
+                    if (key == "name" || key == "description" || key == "image" || key == "tokenURI")
+                        value = TryParseByteString(element.GetProperty("value").GetString());
+                    else
+                        value = element.GetProperty("value").GetString();
                     writer.WriteString(key, value);
                     break;
                 case "Integer":
