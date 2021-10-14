@@ -105,7 +105,7 @@ namespace Neo.Plugins
                 return;
             //增加需要更新的voter的信息
             DBCache.Ins.cacheVote.AddNeedUpdate(voter, null, txid, block.Index, voteModel.Candidate, voteModel.CandidatePubKey);
-            DBCache.Ins.cacheCandidate.AddNeedUpdate(voteModel.Candidate, voteModel.CandidatePubKey, true);
+            DBCache.Ins.cacheCandidate.AddNeedUpdate(voteModel.Candidate, voteModel.CandidatePubKey, EnumCandidateState.Unknow);
         }
 
         private void ExecuteGasSepical(NotificationModel notificationModel, NeoSystem system, Block block, DataCache snapshot)

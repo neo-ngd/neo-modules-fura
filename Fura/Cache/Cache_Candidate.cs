@@ -14,7 +14,14 @@ namespace Neo.Plugins.Cache
     {
         public UInt160 Candidate;
         public string CandidatePubKey;
-        public bool State;
+        public EnumCandidateState State;
+    }
+
+    public enum EnumCandidateState
+    {
+        Unknow,
+        True,
+        False
     }
 
     public class CacheCandidate : IDBCache
@@ -34,11 +41,13 @@ namespace Neo.Plugins.Cache
             D_Candidate = new ConcurrentDictionary<UInt160, CacheCandidateParams>();
         }
 
-        public void AddNeedUpdate(UInt160 candidate, string candidatePubKey, bool state)
+        public void AddNeedUpdate(UInt160 candidate, string candidatePubKey, EnumCandidateState state)
         {
             if (candidate is null)
                 return;
-            D_Candidate[candidate] = new() { Candidate = candidate, State = state , CandidatePubKey  = candidatePubKey};
+            if (D_Candidate.ContainsKey(candidate) && state == EnumCandidateState.Unknow)
+                return;
+            D_Candidate[candidate] = new() { Candidate = candidate, State = state, CandidatePubKey = candidatePubKey };
         }
 
         public List<CacheCandidateParams> GetNeedUpdate()
@@ -69,17 +78,23 @@ namespace Neo.Plugins.Cache
             }
         }
 
-        public void AddOrUpdate(UInt160 candidate, bool state, BigInteger votes)
+        public void AddOrUpdate(UInt160 candidate, EnumCandidateState state, BigInteger votes)
         {
             if (candidate is null || candidate == UInt160.Zero) return;
             CandidateModel candidateModel = Get(candidate);
             if (candidateModel is null)
             {
-                candidateModel = new CandidateModel(candidate, state, votes.ToString(), false);
+                //如果之前candidate不存在，那么unkown意味着false
+                var _state = state == EnumCandidateState.True ? true : false;
+                candidateModel = new CandidateModel(candidate, _state, votes.ToString(), false);
             }
             else
             {
-                candidateModel.State = state;
+                //如果之前candidate存在，那么unkown意味着不变
+                if(state != EnumCandidateState.Unknow)
+                {
+                    candidateModel.State = state == EnumCandidateState.True ? true : false;
+                }
                 candidateModel.VotesOfCandidate = Decimal128.Parse(votes.ToString());
             }
             D_CandidateModel[candidate] = candidateModel;

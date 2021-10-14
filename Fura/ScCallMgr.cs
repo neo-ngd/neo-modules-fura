@@ -100,10 +100,10 @@ namespace Neo.Plugins
             //哪些voter需要更新记录
             DBCache.Ins.cacheVote.AddNeedUpdate(voter, scCall.Txid, null, block.Index, candidate, candidatePubKey);
             //哪些candidate需要更新记录
-            DBCache.Ins.cacheCandidate.AddNeedUpdate(candidate, scCall.HexStringParams[1], true);
+            DBCache.Ins.cacheCandidate.AddNeedUpdate(candidate, scCall.HexStringParams[1], EnumCandidateState.Unknow);
             if (DBCache.Ins.cacheVote.Get(voter) is not null)
             {
-                DBCache.Ins.cacheCandidate.AddNeedUpdate(scVoteCallModel.Candidate, scCall.HexStringParams[1], true);
+                DBCache.Ins.cacheCandidate.AddNeedUpdate(scVoteCallModel.Candidate, scCall.HexStringParams[1], EnumCandidateState.Unknow);
             }
             return true;
         }
@@ -113,7 +113,7 @@ namespace Neo.Plugins
             if (scCall.HexStringParams.Length != 1) return false;
             UInt160 candidate = Contract.CreateSignatureContract(ECPoint.Parse(scCall.HexStringParams[0], ECCurve.Secp256r1)).ScriptHash;
             //哪些candidate需要更新记录
-            DBCache.Ins.cacheCandidate.AddNeedUpdate(candidate, scCall.HexStringParams[0], true);
+            DBCache.Ins.cacheCandidate.AddNeedUpdate(candidate, scCall.HexStringParams[0],  EnumCandidateState.True);
             return true;
         }
 
@@ -122,7 +122,7 @@ namespace Neo.Plugins
             if (scCall.HexStringParams.Length != 1) return false;
             UInt160 candidate = Contract.CreateSignatureContract(ECPoint.Parse(scCall.HexStringParams[0], ECCurve.Secp256r1)).ScriptHash;
             //哪些candidate需要更新记录
-            DBCache.Ins.cacheCandidate.AddNeedUpdate(candidate, scCall.HexStringParams[0], false);
+            DBCache.Ins.cacheCandidate.AddNeedUpdate(candidate, scCall.HexStringParams[0], EnumCandidateState.False);
             return true;
         }
     }
