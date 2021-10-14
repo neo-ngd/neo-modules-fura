@@ -84,7 +84,7 @@ namespace Neo.Plugins.Models
         public async static Task InitCollectionAndIndex()
         {
             await DB.CreateCollection<TransactionModel>(new CreateCollectionOptions<TransactionModel>());
-            await DB.Index<TransactionModel>().Key(a => a.Hash, KeyType.Ascending).Option(o => { o.Name = "_hash_"; }).CreateAsync();
+            await DB.Index<TransactionModel>().Key(a => a.Hash, KeyType.Ascending).Option(o => { o.Name = "_hash_unique_"; o.Unique = true; }).CreateAsync();
             await DB.Index<TransactionModel>().Key(a => a.Sender, KeyType.Ascending).Option(o => { o.Name = "_sender_"; }).CreateAsync();
             await DB.Index<TransactionModel>().Key(a => a.BlockHash, KeyType.Ascending).Option(o => { o.Name = "_blockhash_"; }).CreateAsync();
             await DB.Index<TransactionModel>().Key(a => a.BlockTime, KeyType.Ascending).Option(o => { o.Name = "_blocktime_"; }).CreateAsync();
