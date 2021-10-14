@@ -250,7 +250,7 @@ namespace Neo.Plugins
                         list_ScCall[i].Result = stacks[i];
                     }
                 }
-                else
+                else if(stacks.Length != 0)
                 {
                     DebugModel debugModel = new(string.Format("list_ScCall.Count != stacks.Length, txid:{0}", applicationExecuted.Transaction.Hash));
                     debugModel.SaveAsync().Wait();
@@ -332,7 +332,7 @@ namespace Neo.Plugins
                     if (candidateModel is null)
                     {
                         var votes = Neo.Plugins.VM.Helper.GetCandidateVotes(c, system, snapshot);
-                        candidateModel = new CandidateModel(hash, true, votes.ToString(), true);
+                        candidateModel = new CandidateModel(hash, false, votes.ToString(), true);
                     }
                     candidateModel.IsCommittee = true;
                     return candidateModel;
