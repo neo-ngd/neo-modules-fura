@@ -4,6 +4,7 @@ using MongoDB.Driver;
 using MongoDB.Entities;
 using Neo.Plugins.Attribute;
 using System.Linq;
+using Neo.VM;
 
 namespace Neo.Plugins.Models
 {
@@ -47,22 +48,7 @@ namespace Neo.Plugins.Models
             Exception = exception;
             GasConsumed = gasconsumed;
             Timestamp = timestamp;
-            Stacks = stack.Select(p => ParseStackItem(p)).ToArray();
-        }
-
-        public string ParseStackItem(Neo.VM.Types.StackItem stackItem)
-        {
-            switch (stackItem.Type)
-            {
-                case Neo.VM.Types.StackItemType.Boolean:
-                    return stackItem.GetBoolean().ToString();
-                case Neo.VM.Types.StackItemType.Integer:
-                    return stackItem.GetInteger().ToString();
-                case Neo.VM.Types.StackItemType.ByteString:
-                    return stackItem.GetString().ToString();
-                default:
-                    return "";
-            }
+            Stacks = stack.Select(p => p.ToJson().ToString()).ToArray();
         }
 
         public static ExecutionModel Get(UInt256 txid,UInt256 blockHash, string trigger)
