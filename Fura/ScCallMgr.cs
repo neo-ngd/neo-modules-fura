@@ -59,19 +59,11 @@ namespace Neo.Plugins
 
         public void Filter(List<ScCallModel> scCallModels, NeoSystem system, Block block, DataCache snapshot)
         {
-            //foreach(var sc in scCallModels)
-            //{
-            //    var key = GetKey(sc.ContractHash,sc.Method);
-            //    if (dic_filter.ContainsKey(key))
-            //    {
-            //        dic_filter[key](sc, system, block, snapshot);
-            //    }
-            //}
             Parallel.For(0, scCallModels.Count, (i) =>
             {
                  var sc = scCallModels[i];
                  var key = GetKey(sc.ContractHash, sc.Method);
-                 if (dic_filter.ContainsKey(key))
+                 if (dic_filter.ContainsKey(key) && sc.Result && sc.Vmstate == "HALT")
                  {
                      dic_filter[key](sc, system, block, snapshot);
                  }

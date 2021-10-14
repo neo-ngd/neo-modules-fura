@@ -32,9 +32,12 @@ namespace Neo.Plugins.Models
         [BsonElement("timestamp")]
         public ulong Timestamp { get; set; }
 
+        [BsonElement("stacks")]
+        public bool[] Stacks { get; set; }
+
         public ExecutionModel() { }
 
-        public ExecutionModel(UInt256 txid, UInt256 blockHash, ulong timestamp, string trigger, string vmstate, string exception, long gasconsumed)
+        public ExecutionModel(UInt256 txid, UInt256 blockHash, ulong timestamp, string trigger, string vmstate, string exception, long gasconsumed, bool[] stacks)
         {
             Txid = txid;
             BlockHash = blockHash;
@@ -43,22 +46,13 @@ namespace Neo.Plugins.Models
             Exception = exception;
             GasConsumed = gasconsumed;
             Timestamp = timestamp;
-        }
-
-        public ExecutionModel(ExecutionModel executionModel)
-        {
-            Txid = executionModel.Txid;
-            BlockHash = executionModel.BlockHash;
-            Trigger = executionModel.Trigger;
-            VmState = executionModel.VmState;
-            Exception = executionModel.Exception;
-            GasConsumed = executionModel.GasConsumed;
+            Stacks = stacks;
         }
 
         public static ExecutionModel Get(UInt256 txid,UInt256 blockHash, string trigger)
         {
             ExecutionModel executionModel = DB.Find<ExecutionModel>().Match( e => e.Txid == txid && e.BlockHash == blockHash && e.Trigger == trigger ).ExecuteFirstAsync().Result;
-            return executionModel is null ? null : new ExecutionModel(executionModel);
+            return executionModel;
         }
 
         /// <summary>
