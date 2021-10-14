@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Threading.Tasks;
 using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Driver;
 using MongoDB.Entities;
 using Neo.Network.P2P.Payloads;
 using Neo.Plugins.Attribute;
@@ -21,6 +23,8 @@ namespace Neo.Plugins.Models
         [BsonElement("timestamp")]
         public long Timestamp { get; set; }
 
+        public RecordCommitModel() { }
+
         public static RecordCommitModel Get(uint blockIndex)
         {
             RecordCommitModel recordPersistModel = DB.Find<RecordCommitModel>().Match(r => r.BlockIndex == blockIndex).ExecuteFirstAsync().Result;
@@ -30,6 +34,12 @@ namespace Neo.Plugins.Models
         public static void Delete(uint blockIndex)
         {
             DB.DeleteAsync<RecordCommitModel>(r => r.BlockIndex == blockIndex);
+        }
+
+        public async static Task InitCollectionAndIndex()
+        {
+            await DB.CreateCollection<RecordCommitModel>(new CreateCollectionOptions<RecordCommitModel>());
+            await DB.Index<RecordCommitModel>().Key(a => a.BlockIndex, KeyType.Ascending).Option(o => { o.Name = "_blockIndex_unique_"; o.Unique = true; }).CreateAsync();
         }
     }
 }

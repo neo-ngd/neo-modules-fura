@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Driver;
 using MongoDB.Entities;
 using Neo.Plugins.Attribute;
 
@@ -22,6 +24,8 @@ namespace Neo.Plugins.Models
         [BsonElement("isCommittee")]
         public bool IsCommittee { get; set; }
 
+        public CandidateModel() { }
+
         public CandidateModel(UInt160 candidate, bool state, string votesOfCandidate, bool isCommittee = true)
         {
             Candidate = candidate;
@@ -40,6 +44,12 @@ namespace Neo.Plugins.Models
         {
             List<CandidateModel> candidateModel = DB.Find<CandidateModel>().Match(c => c.IsCommittee == isCommittee).ExecuteAsync().Result;
             return candidateModel;
+        }
+
+        public async static Task InitCollectionAndIndex()
+        {
+            await DB.CreateCollection<CandidateModel>(new CreateCollectionOptions<CandidateModel>());
+            await DB.Index<CandidateModel>().Key(a => a.Candidate, KeyType.Ascending).Option(o => { o.Name = "_candidate_unique_"; o.Unique = true; }).CreateAsync();
         }
     }
 }

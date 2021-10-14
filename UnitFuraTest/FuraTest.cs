@@ -10,6 +10,8 @@ using Neo.Plugins.VM;
 using Neo.Plugins;
 using Neo.Cryptography.ECC;
 using System.Collections.Generic;
+using System.Text.Json;
+using System.IO;
 
 namespace UnitFuraTest
 {
@@ -19,15 +21,15 @@ namespace UnitFuraTest
         [TestInitialize]
         public void Init()
         {
-
         }
 
         [TestMethod]
         public void TestScript2Executions()
         {
-            var base64String = "EBAQExETDAAMAAwOUmVzcG9uc2liaWxpdHkMDURldGVybWluYXRpb24MBkxlYWRlcgwETWFsZQwKQ3J5cHRvbmF1dAyUVGhlIGZpcnN0IENyeXB0b25hdXQgdG8gbGFuZCBvbiB0aGUgbW9vbi4gLjAwMSBpcyB0aGUgcGlvbmVlciBvZiB0aGUgQ3J5cHRvbmF1dHMsIHdpdGggdGhlIHJlbGlhYmlsaXR5IGFuZCBkcml2ZSB0byBtYWludGFpbiBoaXMgaGVhZCBob25jaG8gc3RhdHVzLgxOaHR0cHM6Ly9taW50aW5nLXR0bS5zMy5hbWF6b25hd3MuY29tL05FVytNT09OKy0rQ1JZUFRPTkFVVFMvQ3J5cHRvbmF1dC4wMDEuc3ZnDANHSU4MDVNvdXRoIEFtZXJpY2EMCE5ldyBNb29uEQwETW9vbgwPQ3J5cHRvbmF1dCAuMDAxDARDMDAxDAlDaGFyYWN0ZXIAWgwUscULnROUsRBiD1tctANzvWBf6+MAGcAfDA1taW50Q2hhcmFjdGVyDBR8+ztrd+pH3tZmQRtewFdPJvVU5kFifVtS";
+            var base64String = "SAQoBW93bmVyKBSJIuFGyl/Nb3OPav8NWTMY8XoFWSgEbmFtZSgEVGVzdCgLZGVzY3JpcHRpb24oDFRlc3QgZm9yIE5GVCgFaW1hZ2UoU2h0dHBzOi8vYmFmeWJlaWdiYndza2JiNHgyc2x5ZXkyZXlrb3ZyNHFuNnRkeXJrNTV2cTIyYnRqMmV5aWNobm9iaWkuaXBmcy5kd2ViLmxpbmsv";
             //var base64String = "DCEC13y+vWO9KxAxFwg0SF0rjAJoq/n2N89uNwqrDwi+WHsMFIU5Il4pKR6Kf5xyOLaNS67/1PekEsAfDAR2b3RlDBT1Y+pAvCg9TQ4FxI6jBbPyoHNA70FifVtS";
             var script = Convert.FromBase64String(base64String);
+            var str = Encoding.UTF8.GetString(script);
             var scCalls = Neo.Plugins.VM.Helper.Script2ScCallModels(script,UInt256.Zero, UInt160.Zero);
         }
 

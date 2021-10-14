@@ -11,6 +11,8 @@ using Neo.SmartContract;
 using Neo.SmartContract.Native;
 using Neo.Plugins.Cache;
 using System.Threading.Tasks;
+using System.IO;
+using System.Reflection;
 
 namespace Neo.Plugins
 {
@@ -35,38 +37,9 @@ namespace Neo.Plugins
             {
                 MongoClient.InitDB(Settings.Default.DbName, Settings.Default.Host, Settings.Default.Port, Settings.Default.User, Settings.Default.Password).Wait();
             }
-            Loger.Common("mongodb init succ");
-            AssetModel assetModel = (from a in DB.Queryable<AssetModel>() where a.Hash.Equals(NativeContract.GAS.Hash) select a).FirstOrDefault();
-            if (assetModel is not null)
-                return;
+            MongoClient.InitCollectionAndIndex().Wait();
 
-            using (var transaction = new MongoDB.Entities.Transaction())
-            {
-                ContractModel contractModel_oracle = new(NativeContract.Oracle.Hash, "Oracle", NativeContract.Oracle.Id, 0, NativeContract.Oracle.Nef.ToJson(), NativeContract.Oracle.Manifest.ToJson(), system.GenesisBlock.Timestamp, UInt256.Zero);
-                ContractModel contractModel_roleManagement = new(NativeContract.RoleManagement.Hash, "RoleManagement", NativeContract.RoleManagement.Id, 0, NativeContract.RoleManagement.Nef.ToJson(), NativeContract.RoleManagement.Manifest.ToJson(), system.GenesisBlock.Timestamp, UInt256.Zero);
-                ContractModel contractModel_policy = new(NativeContract.Policy.Hash, "Policy", NativeContract.Policy.Id, 0, NativeContract.Policy.Nef.ToJson(), NativeContract.Policy.Manifest.ToJson(), system.GenesisBlock.Timestamp, UInt256.Zero);
-                ContractModel contractModel_gas = new(NativeContract.GAS.Hash, "GasToken", NativeContract.GAS.Id, 0, NativeContract.GAS.Nef.ToJson(), NativeContract.GAS.Manifest.ToJson(), system.GenesisBlock.Timestamp, UInt256.Zero);
-                ContractModel contractModel_neo = new(NativeContract.NEO.Hash, "NeoToken", NativeContract.NEO.Id, 0, NativeContract.NEO.Nef.ToJson(), NativeContract.NEO.Manifest.ToJson(), system.GenesisBlock.Timestamp, UInt256.Zero);
-                ContractModel contractModel_ledger = new(NativeContract.Ledger.Hash, "Ledger", NativeContract.Ledger.Id, 0, NativeContract.Ledger.Nef.ToJson(), NativeContract.Ledger.Manifest.ToJson(), system.GenesisBlock.Timestamp, UInt256.Zero);
-                ContractModel contractModel_cryptoLib = new(NativeContract.CryptoLib.Hash, "CryptoLib", NativeContract.CryptoLib.Id, 0, NativeContract.CryptoLib.Nef.ToJson(), NativeContract.CryptoLib.Manifest.ToJson(), system.GenesisBlock.Timestamp, UInt256.Zero);
-                ContractModel contractModel_stdLib = new(NativeContract.StdLib.Hash, "StdLib", NativeContract.StdLib.Id, 0, NativeContract.StdLib.Nef.ToJson(), NativeContract.StdLib.Manifest.ToJson(), system.GenesisBlock.Timestamp, UInt256.Zero);
-                ContractModel contractModel_contractManagement = new(NativeContract.ContractManagement.Hash, "ContractManagement", NativeContract.ContractManagement.Id, 0, NativeContract.ContractManagement.Nef.ToJson(), NativeContract.ContractManagement.Manifest.ToJson(), system.GenesisBlock.Timestamp, UInt256.Zero);
-                transaction.SaveAsync(contractModel_oracle).Wait();
-                transaction.SaveAsync(contractModel_roleManagement).Wait();
-                transaction.SaveAsync(contractModel_policy).Wait();
-                transaction.SaveAsync(contractModel_gas).Wait();
-                transaction.SaveAsync(contractModel_neo).Wait();
-                transaction.SaveAsync(contractModel_ledger).Wait();
-                transaction.SaveAsync(contractModel_cryptoLib).Wait();
-                transaction.SaveAsync(contractModel_stdLib).Wait();
-                transaction.SaveAsync(contractModel_contractManagement).Wait();
-                AssetModel assetModel_gas = new(NativeContract.GAS.Hash, system.GenesisBlock.Timestamp, "GasToken", 8, "GAS", 0, EnumAssetType.NEP17);
-                AssetModel assetModel_neo = new(NativeContract.NEO.Hash, system.GenesisBlock.Timestamp, "NeoToken", 0, "NEO", 0, EnumAssetType.NEP17);
-                transaction.SaveAsync(assetModel_gas).Wait();
-                transaction.SaveAsync(assetModel_neo).Wait();
-                transaction.CommitAsync().Wait();
-            }
-            Loger.Common("data init succ");
+            MongoClient.InitBasicData(system).Wait();
         }
 
         void IPersistencePlugin.OnPersist(NeoSystem system, Block block, DataCache snapshot, IReadOnlyList<Blockchain.ApplicationExecuted> applicationExecutedList)

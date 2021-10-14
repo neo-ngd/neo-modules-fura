@@ -2,6 +2,8 @@
 using MongoDB.Entities;
 using Neo.Plugins.Attribute;
 using MongoDB.Bson;
+using MongoDB.Driver;
+using System.Threading.Tasks;
 
 namespace Neo.Plugins.Models
 {
@@ -39,6 +41,8 @@ namespace Neo.Plugins.Models
         [BsonElement("lastTransferTxid")]
         public UInt256 LastTransferTxid { get; set; }
 
+        public VoteModel() { }
+
         public VoteModel(UInt256 lastVoteTxid, uint blockNumber, UInt160 voter, UInt160 candidate, string candidatePubKey, string balanceOfVoter, UInt256 lastTransferTxid)
         {
             LastVoteTxid = lastVoteTxid;
@@ -54,6 +58,14 @@ namespace Neo.Plugins.Models
         {
             VoteModel voteModel = DB.Find<VoteModel>().Match( v => v.Voter == voter ).ExecuteFirstAsync().Result;
             return voteModel;
+        }
+
+        public async static Task InitCollectionAndIndex()
+        {
+            await DB.CreateCollection<VoteModel>(new CreateCollectionOptions<VoteModel>());
+            await DB.Index<VoteModel>().Key(a => a.Voter, KeyType.Ascending).Option(o => { o.Name = "_voter_"; }).CreateAsync();
+            await DB.Index<VoteModel>().Key(a => a.BlockNumber, KeyType.Ascending).Key(a => a.Voter, KeyType.Ascending).Option(o => { o.Name = "_blockNumber_voter_"; }).CreateAsync();
+            await DB.Index<VoteModel>().Key(a => a.Candidate, KeyType.Ascending).Option(o => { o.Name = "_candidate_"; }).CreateAsync();
         }
     }
 }

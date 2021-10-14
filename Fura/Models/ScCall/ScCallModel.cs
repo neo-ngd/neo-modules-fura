@@ -1,4 +1,6 @@
-﻿using MongoDB.Bson.Serialization.Attributes;
+﻿using System.Threading.Tasks;
+using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Driver;
 using MongoDB.Entities;
 using Neo.Plugins.Attribute;
 
@@ -28,6 +30,8 @@ namespace Neo.Plugins.Models
         [BsonElement("hexStringParams")]
         public string[] HexStringParams { get; set; }
 
+        public ScCallModel() { }
+
         public ScCallModel(UInt256 txid,UInt160 originSender, UInt160 contractHash, string method, string callFlags, params string[] hexStringParams)
         {
             Txid = txid;
@@ -47,6 +51,17 @@ namespace Neo.Plugins.Models
             Method = scCallModel.Method;
             CallFlags = scCallModel.CallFlags;
             HexStringParams = scCallModel.HexStringParams;
+        }
+
+        public async static Task InitCollectionAndIndex()
+        {
+            await DB.CreateCollection<ScCallModel>(new CreateCollectionOptions<ScCallModel>());
+            await DB.Index<ScCallModel>().Key(a => a.OriginSender, KeyType.Ascending).Option(o => { o.Name = "_originSender_"; }).CreateAsync();
+            await DB.Index<ScCallModel>().Key(a => a.OriginSender, KeyType.Ascending).Key(a => a.ContractHash, KeyType.Ascending).Option(o => { o.Name = "_originSender_contractHash_"; }).CreateAsync();
+            await DB.Index<ScCallModel>().Key(a => a.ContractHash, KeyType.Ascending).Option(o => { o.Name = "_contractHash_"; }).CreateAsync();
+            await DB.Index<ScCallModel>().Key(a => a.Method, KeyType.Ascending).Option(o => { o.Name = "_method_"; }).CreateAsync();
+            await DB.Index<ScCallModel>().Key(a => a.ContractHash, KeyType.Ascending).Key(a => a.Method, KeyType.Ascending).Option(o => { o.Name = "_contractHash_method_"; }).CreateAsync();
+            await DB.Index<ScCallModel>().Key(a => a.Txid, KeyType.Ascending).Option(o => { o.Name = "_txid_"; }).CreateAsync();
         }
     }
 }

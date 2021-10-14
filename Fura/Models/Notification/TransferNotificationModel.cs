@@ -1,6 +1,8 @@
 using System.Numerics;
+using System.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Driver;
 using MongoDB.Entities;
 using Neo.Plugins.Attribute;
 
@@ -41,6 +43,8 @@ namespace Neo.Plugins.Models
         [BsonElement("timestamp")]
         public ulong Timestamp { get; set; }
 
+        public TransferNotificationModel() { }
+
         public TransferNotificationModel(UInt256 txid, UInt256 blockHash, ulong timestamp, UInt160 assetHash, UInt160 from, UInt160 to, BigInteger value, BigInteger fromBalanceOf, BigInteger toBalanceOf)
         {
             Txid = txid;
@@ -52,6 +56,18 @@ namespace Neo.Plugins.Models
             FromBalanceOf = BsonDecimal128.Create(fromBalanceOf.ToString());
             ToBalanceOf = BsonDecimal128.Create(toBalanceOf.ToString());
             Timestamp = timestamp;
+        }
+
+        public async static Task InitCollectionAndIndex()
+        {
+            await DB.CreateCollection<TransferNotificationModel>(new CreateCollectionOptions<TransferNotificationModel>());
+            await DB.Index<TransferNotificationModel>().Key(a => a.AssetHash, KeyType.Ascending).Option(o => { o.Name = "_contract_"; }).CreateAsync();
+            await DB.Index<TransferNotificationModel>().Key(a => a.Txid, KeyType.Ascending).Option(o => { o.Name = "_txid_"; }).CreateAsync();
+            await DB.Index<TransferNotificationModel>().Key(a => a.From, KeyType.Ascending).Option(o => { o.Name = "_from_"; }).CreateAsync();
+            await DB.Index<TransferNotificationModel>().Key(a => a.To, KeyType.Ascending).Option(o => { o.Name = "_to_"; }).CreateAsync();
+            await DB.Index<TransferNotificationModel>().Key(a => a.BlockHash, KeyType.Ascending).Option(o => { o.Name = "_blockhash_"; }).CreateAsync();
+            await DB.Index<TransferNotificationModel>().Key(a => a.Timestamp, KeyType.Ascending).Option(o => { o.Name = "_timestamp_"; }).CreateAsync();
+            await DB.Index<TransferNotificationModel>().Key(a => a.Timestamp, KeyType.Ascending).Key(a => a.Txid, KeyType.Ascending).Option(o => { o.Name = "_timestamp_txid_"; }).CreateAsync();
         }
     }
 }

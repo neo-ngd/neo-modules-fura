@@ -1,5 +1,7 @@
 using System;
+using System.Threading.Tasks;
 using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Driver;
 using MongoDB.Entities;
 using Neo.Network.P2P.Payloads;
 using Neo.Plugins.Attribute;
@@ -43,6 +45,8 @@ namespace Neo.Plugins.Models
         [BsonElement("size")]
         public int Size { get; set; }
 
+        public HeaderModel() { }
+
         public HeaderModel(Header header)
         {
             Version = header.Version;
@@ -55,6 +59,13 @@ namespace Neo.Plugins.Models
             Witnesses = new WitnessModel[] { new(header.Witness)};
             Hash = header.Hash;
             Size = header.Size;
+        }
+
+        public async static Task InitCollectionAndIndex()
+        {
+            await DB.CreateCollection<HeaderModel>(new CreateCollectionOptions<HeaderModel>());
+            await DB.Index<HeaderModel>().Key(a => a.Index, KeyType.Ascending).Option(o => { o.Name = "_index_unique_"; o.Unique = true; }).CreateAsync();
+            await DB.Index<HeaderModel>().Key(a => a.Hash, KeyType.Ascending).Option(o => { o.Name = "_hash_unique_"; o.Unique = true; }).CreateAsync();
         }
     }
 

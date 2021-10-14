@@ -1,6 +1,8 @@
 using System.Numerics;
+using System.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Driver;
 using MongoDB.Entities;
 using Neo.Plugins.Attribute;
 
@@ -39,6 +41,11 @@ namespace Neo.Plugins.Models
         [BsonElement("type")]
         public string Type { get; set; }
 
+        public AssetModel()
+        {
+
+        }
+
         public AssetModel(UInt160 hash,ulong firstTransferTime, string tokenName, byte decimals, string symbol, BigInteger totalSupply, EnumAssetType enumAssetType)
         {
             Hash = hash;
@@ -50,11 +57,16 @@ namespace Neo.Plugins.Models
             Type = enumAssetType.ToString();
         }
 
-
         public static AssetModel Get(UInt160 hash)
         {
             AssetModel assetModel = DB.Find<AssetModel>().Match( a => a.Hash == hash).ExecuteFirstAsync().Result;
             return assetModel;
+        }
+
+        public async static Task InitCollectionAndIndex()
+        {
+            await DB.CreateCollection<AssetModel>(new CreateCollectionOptions<AssetModel>());
+            await DB.Index<AssetModel>().Key(a => a.Hash, KeyType.Ascending).Option(o => { o.Name = "_hash_unique_"; o.Unique = true; }).CreateAsync();
         }
     }
 }

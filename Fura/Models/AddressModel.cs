@@ -1,4 +1,6 @@
+using System.Threading.Tasks;
 using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Driver;
 using MongoDB.Entities;
 using Neo.Plugins.Attribute;
 
@@ -13,6 +15,11 @@ namespace Neo.Plugins.Models
 
         [BsonElement("firstusetime")]
         public ulong FirstUseTime { get; set; }//timestamp
+
+        public AddressModel()
+        {
+
+        }
 
         public AddressModel(UInt160 address, ulong firstUseTime)
         {
@@ -31,6 +38,13 @@ namespace Neo.Plugins.Models
         {
             AddressModel addressModel = DB.Find<AddressModel>().Match(a => a.Address == address).ExecuteFirstAsync().Result;
             return addressModel;
+        }
+
+        public async static Task InitCollectionAndIndex()
+        {
+            await DB.CreateCollection<AddressModel>(new CreateCollectionOptions<AddressModel>());
+            await DB.Index<AddressModel>().Key(a => a.Address, KeyType.Ascending).Option(o => { o.Name = "_address_unique_"; o.Unique = true; }).CreateAsync();
+            await DB.Index<AddressModel>().Key(a => a.FirstUseTime, KeyType.Ascending).Option(o => { o.Name = "_firstusetime_"; }).CreateAsync();
         }
     }
 }

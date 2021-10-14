@@ -1,5 +1,7 @@
 using System.Linq;
+using System.Threading.Tasks;
 using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Driver;
 using MongoDB.Entities;
 using Neo.Network.P2P.Payloads;
 using Neo.Plugins.Attribute;
@@ -58,6 +60,8 @@ namespace Neo.Plugins.Models
         [BsonElement("blocktime")]
         public ulong BlockTime { get; set; }
 
+        public TransactionModel() { }
+
         public TransactionModel(Neo.Network.P2P.Payloads.Transaction transaction,UInt256 blockHash, ulong blockTime, uint blockIndex)
         {
             Hash = transaction.Hash;
@@ -75,6 +79,16 @@ namespace Neo.Plugins.Models
             BlockHash = blockHash;
             BlockTime = blockTime;
             BlockIndex = blockIndex;
+        }
+
+        public async static Task InitCollectionAndIndex()
+        {
+            await DB.CreateCollection<TransactionModel>(new CreateCollectionOptions<TransactionModel>());
+            await DB.Index<TransactionModel>().Key(a => a.Hash, KeyType.Ascending).Option(o => { o.Name = "_hash_"; }).CreateAsync();
+            await DB.Index<TransactionModel>().Key(a => a.Sender, KeyType.Ascending).Option(o => { o.Name = "_sender_"; }).CreateAsync();
+            await DB.Index<TransactionModel>().Key(a => a.BlockHash, KeyType.Ascending).Option(o => { o.Name = "_blockhash_"; }).CreateAsync();
+            await DB.Index<TransactionModel>().Key(a => a.BlockTime, KeyType.Ascending).Option(o => { o.Name = "_blocktime_"; }).CreateAsync();
+            await DB.Index<TransactionModel>().Key(a => a.BlockIndex, KeyType.Ascending).Option(o => { o.Name = "_blockIndex_"; }).CreateAsync();
         }
     }
 

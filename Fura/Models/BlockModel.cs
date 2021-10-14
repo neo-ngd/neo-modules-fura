@@ -1,4 +1,6 @@
+using System.Threading.Tasks;
 using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Driver;
 using MongoDB.Entities;
 using Neo.Network.P2P.Payloads;
 using Neo.Plugins.Attribute;
@@ -54,6 +56,11 @@ namespace Neo.Plugins.Models
         [BsonElement("nonce")]
         public string Nonce { get; set; }
 
+        public BlockModel()
+        {
+
+        }
+
         public BlockModel(Block block)
         {
             header = new HeaderModel(block.Header);
@@ -65,6 +72,13 @@ namespace Neo.Plugins.Models
         {
             BlockModel blockModel = DB.Find<BlockModel>().Match( b => b.Hash == blockHash ).ExecuteFirstAsync().Result;
             return blockModel;
+        }
+
+        public async static Task InitCollectionAndIndex()
+        {
+            await DB.CreateCollection<BlockModel>(new CreateCollectionOptions<BlockModel>());
+            await DB.Index<BlockModel>().Key(a => a.Hash, KeyType.Ascending).Option(o => { o.Name = "_hash_unique_"; o.Unique = true; }).CreateAsync();
+            await DB.Index<BlockModel>().Key(a => a.Index, KeyType.Ascending).Option(o => { o.Name = "_index_unique_"; o.Unique = true; }).CreateAsync();
         }
     }
 }

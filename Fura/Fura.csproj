@@ -27,6 +27,7 @@
       <None Remove="Models\ScCall\" />
       <None Remove="MongoDB.Entities" />
       <None Remove="Cache\" />
+      <None Remove="Newtonsoft.Json" />
     </ItemGroup>
     <ItemGroup>
       <Content Include="Fura\config.json">

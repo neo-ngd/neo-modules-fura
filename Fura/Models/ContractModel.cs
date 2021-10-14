@@ -1,5 +1,7 @@
+using System.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Driver;
 using MongoDB.Entities;
 using Neo.IO.Json;
 using Neo.Plugins.Attribute;
@@ -35,6 +37,8 @@ namespace Neo.Plugins.Models
         [BsonElement("name")]
         public string Name { get; set; }
 
+        public ContractModel() { }
+
         public ContractModel(UInt160 hash,string name, int id, ushort updateCounter, JObject nef,JObject manifest, ulong createTime, UInt256 txid)
         {
             Hash = hash;
@@ -51,6 +55,13 @@ namespace Neo.Plugins.Models
         {
             ContractModel contractModel = DB.Find<ContractModel>().Match(c => c.Hash == hash).ExecuteFirstAsync().Result;
             return contractModel;
+        }
+
+        public async static Task InitCollectionAndIndex()
+        {
+            await DB.CreateCollection<ContractModel>(new CreateCollectionOptions<ContractModel>());
+            await DB.Index<ContractModel>().Key(a => a.Hash, KeyType.Ascending).Option(o => { o.Name = "_hash_"; }).CreateAsync();
+            await DB.Index<ContractModel>().Key(a => a.Hash, KeyType.Ascending).Key(a => a.UpdateCounter, KeyType.Ascending).Option(o => { o.Name = "_hash_updatecounter_unique_"; o.Unique = true; }).CreateAsync();
         }
     }
 }

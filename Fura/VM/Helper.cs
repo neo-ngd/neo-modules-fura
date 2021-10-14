@@ -10,6 +10,8 @@ using Neo.Plugins.Models;
 using Neo.SmartContract;
 using Neo.VM;
 using Neo.VM.Types;
+using System.Text.Json;
+using System.IO;
 
 namespace Neo.Plugins.VM
 {
@@ -253,6 +255,153 @@ namespace Neo.Plugins.VM
 
         }
 
+        public static string GetNep11Properties(NeoSystem system, DataCache snapshot, UInt160 asset, string TokenId)
+        {
+            byte[] script;
+            using (ScriptBuilder sb = new ScriptBuilder())
+            {
+                try
+                {
+                    sb.EmitDynamicCall(asset, "properties", Convert.FromBase64String(TokenId));
+
+                }
+                catch
+                {
+                    sb.EmitDynamicCall(asset, "properties", TokenId);
+                }
+                script = sb.ToArray();
+            }
+            var properties = "";
+            using (ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, settings: system.Settings))
+            {
+                if (engine.State.HasFlag(VMState.HALT))
+                {
+                    properties = engine.ResultStack.Pop().ToJson().ToString();
+                }
+            }
+
+            if (!string.IsNullOrEmpty(properties))
+            {
+                try
+                {
+                    var document = JsonDocument.Parse(properties);
+                    JsonElement values;
+                    var suc = document.RootElement.TryGetProperty("value", out values);
+                    if (!suc) return properties;
+                    switch (values.ValueKind)
+                    {
+                        case JsonValueKind.Array:
+                            using (var stream = new MemoryStream())
+                            {
+                                using (var writer = new Utf8JsonWriter(stream, new JsonWriterOptions() { Indented = true }))
+                                {
+                                    writer.WriteStartObject();
+                                    foreach (var element in values.EnumerateArray())
+                                    {
+                                        var key = GetValue(element.GetProperty("key"));
+                                        WriteObject(writer, key, element.GetProperty("value"));
+                                    }
+                                    writer.WriteEndObject();
+                                }
+                                properties = Encoding.UTF8.GetString(stream.ToArray());
+                            }
+                            break;
+                        case JsonValueKind.String:
+                            byte[] bts;
+                            suc = values.TryGetBytesFromBase64(out bts);
+                            if (suc)
+                            {
+                                properties = Encoding.UTF8.GetString(bts);
+                            }
+                            break;
+                    }
+
+                }
+                catch
+                {
+                    DebugModel debugModel = new(string.Format("GetNep11Properties----asset: {0} ----  TokenId {1} ---- Properties {2}", asset, TokenId, properties));
+                    debugModel.SaveAsync().Wait();
+                }
+            }
+            return properties;
+        }
+
+        public static string TryParseByteString(string str)
+        {
+            try
+            {
+                str = Encoding.UTF8.GetString(Convert.FromBase64String(str));
+            }
+            catch
+            {
+
+            }
+
+            return str;
+        }
+
+        public static string GetValue(JsonElement element)
+        {
+            var type = element.GetProperty("type").GetString();
+            string value = "";
+            switch (type)
+            {
+                case "ByteString":
+                    value = TryParseByteString(element.GetProperty("value").GetString());
+                    break;
+                case "Integer":
+                    value = element.GetProperty("value").GetString();
+                    break;
+            }
+            return value;
+        }
+
+        public static void WriteObject(Utf8JsonWriter writer, string key, JsonElement element)
+        {
+            var type = element.GetProperty("type").GetString();
+            string value = "";
+            switch (type)
+            {
+                case "ByteString":
+                    if (key == "name" || key == "description" || key == "image" || key == "tokenURI")
+                        value = TryParseByteString(element.GetProperty("value").GetString());
+                    else
+                        value = element.GetProperty("value").GetString();
+                    writer.WriteString(key, value);
+                    break;
+                case "Integer":
+                    value = element.GetProperty("value").GetString();
+                    writer.WriteString(key, value);
+                    break;
+                case "Map":
+                    var values = element.GetProperty("value");
+                    foreach (var _e in values.EnumerateArray())
+                    {
+                        var _key = GetValue(_e.GetProperty("key"));
+                        WriteObject(writer, _key, _e.GetProperty("value"));
+                    }
+                    break;
+                case "Array":
+                    writer.WriteStartObject(key);
+                    foreach (var _e in element.GetProperty("value").EnumerateArray())
+                    {
+                        JsonElement jsonElement;
+                        var suc = _e.TryGetProperty("key", out jsonElement);
+                        if (suc)
+                        {
+                            var _key = GetValue(jsonElement);
+                            WriteObject(writer, _key, _e.GetProperty("value"));
+                        }
+                        else
+                        {
+                            WriteObject(writer, "", _e);
+                        }
+                    }
+                    writer.WriteEndObject();
+                    break;
+            }
+        }
+
         public static BigInteger GetNep11BalanceOf(NeoSystem system, DataCache snapshot, UInt160 asset, string TokenId, UInt160 addr)
         {
             byte[] script;
@@ -280,19 +429,11 @@ namespace Neo.Plugins.VM
                 {
                     try
                     {
-                        try
-                        {
-                            sb.EmitDynamicCall(asset, "ownerOf", Convert.FromBase64String(TokenId));
+                        sb.EmitDynamicCall(asset, "ownerOf", Convert.FromBase64String(TokenId));
 
-                        }
-                        catch(Exception e)
-                        {
-                            sb.EmitDynamicCall(asset, "ownerOf", Convert.FromHexString(TokenId));
-                        }
                     }
-                    catch(Exception e)
+                    catch
                     {
-                        
                         sb.EmitDynamicCall(asset, "ownerOf", TokenId);
                     }
                     script = sb.ToArray();
@@ -313,16 +454,9 @@ namespace Neo.Plugins.VM
                 {
                     try
                     {
-                        try
-                        {
-                            sb.EmitDynamicCall(asset, "balanceOf", addr == null ? UInt160.Parse("0x1100000000000000000220000000000000000011") : addr, Convert.FromBase64String(TokenId));
-                        }
-                        catch (Exception e)
-                        {
-                            sb.EmitDynamicCall(asset, "balanceOf", addr == null ? UInt160.Parse("0x1100000000000000000220000000000000000011") : addr, Convert.FromHexString(TokenId));
-                        }
+                        sb.EmitDynamicCall(asset, "balanceOf", addr == null ? UInt160.Parse("0x1100000000000000000220000000000000000011") : addr, Convert.FromBase64String(TokenId));
                     }
-                    catch (Exception e)
+                    catch
                     {
                         sb.EmitDynamicCall(asset, "balanceOf", addr == null ? UInt160.Parse("0x1100000000000000000220000000000000000011") : addr, TokenId);
                     }

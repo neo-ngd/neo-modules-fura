@@ -1,5 +1,7 @@
 using System.Linq;
+using System.Threading.Tasks;
 using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Driver;
 using MongoDB.Entities;
 using Neo.Plugins.Attribute;
 using Neo.VM;
@@ -35,6 +37,8 @@ namespace Neo.Plugins.Models
 
         public string Vmstate { get; set; }
 
+        public NotificationModel() { }
+
         public NotificationModel(UInt256 txid, int index, UInt256 blockhash, ulong timestamp, UInt160 contractHash, string eventName, string vmstate,Neo.VM.Types.Array array)
         {
             Txid = txid;
@@ -45,6 +49,18 @@ namespace Neo.Plugins.Models
             Vmstate = vmstate;
             State = new NotificationStateModel(array);
             Timestamp = timestamp;
+        }
+
+        public async static Task InitCollectionAndIndex()
+        {
+            await DB.CreateCollection<NotificationModel>(new CreateCollectionOptions<NotificationModel>());
+            await DB.Index<NotificationModel>().Key(a => a.Txid, KeyType.Ascending).Option(o => { o.Name = "_txid_"; }).CreateAsync();
+            await DB.Index<NotificationModel>().Key(a => a.BlockHash, KeyType.Ascending).Option(o => { o.Name = "_blockhash_"; }).CreateAsync();
+            await DB.Index<NotificationModel>().Key(a => a.ContractHash, KeyType.Ascending).Option(o => { o.Name = "_contract_"; }).CreateAsync();
+            await DB.Index<NotificationModel>().Key(a => a.EventName, KeyType.Ascending).Option(o => { o.Name = "_eventname_"; }).CreateAsync();
+            await DB.Index<NotificationModel>().Key(a => a.Txid, KeyType.Ascending).Key(a => a.ContractHash, KeyType.Ascending).Option(o => { o.Name = "_txid_contract_"; }).CreateAsync();
+            await DB.Index<NotificationModel>().Key(a => a.BlockHash, KeyType.Ascending).Key(a => a.ContractHash, KeyType.Ascending).Option(o => { o.Name = "_blockhash_contract_"; }).CreateAsync();
+            await DB.Index<NotificationModel>().Key(a => a.Txid, KeyType.Ascending).Key(a => a.BlockHash, KeyType.Ascending).Option(o => { o.Name = "_txid_blockhash_"; }).CreateAsync();
         }
     }
 

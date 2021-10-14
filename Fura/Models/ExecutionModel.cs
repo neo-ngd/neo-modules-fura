@@ -1,4 +1,6 @@
+using System.Threading.Tasks;
 using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Driver;
 using MongoDB.Entities;
 using Neo.Plugins.Attribute;
 
@@ -29,6 +31,8 @@ namespace Neo.Plugins.Models
 
         [BsonElement("timestamp")]
         public ulong Timestamp { get; set; }
+
+        public ExecutionModel() { }
 
         public ExecutionModel(UInt256 txid, UInt256 blockHash, ulong timestamp, string trigger, string vmstate, string exception, long gasconsumed)
         {
@@ -66,6 +70,14 @@ namespace Neo.Plugins.Models
         {
             ExecutionModel executionModel = DB.Find<ExecutionModel>().Match( e => e.BlockHash == blockHash).ExecuteFirstAsync().Result;
             return executionModel is not null;
+        }
+
+        public async static Task InitCollectionAndIndex()
+        {
+            await DB.CreateCollection<ExecutionModel>(new CreateCollectionOptions<ExecutionModel>());
+            await DB.Index<ExecutionModel>().Key(a => a.Txid, KeyType.Ascending).Option(o => { o.Name = "_txid_"; }).CreateAsync();
+            await DB.Index<ExecutionModel>().Key(a => a.BlockHash, KeyType.Ascending).Option(o => { o.Name = "_blockhash_"; }).CreateAsync();
+            await DB.Index<ExecutionModel>().Key(a => a.Txid, KeyType.Ascending).Key(a => a.BlockHash, KeyType.Ascending).Key(a => a.Trigger, KeyType.Ascending).Option(o => { o.Name = "_txid_blockhash_trigger_"; }).CreateAsync();
         }
     }
 }

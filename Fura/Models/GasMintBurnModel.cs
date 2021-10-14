@@ -1,5 +1,7 @@
-﻿using MongoDB.Bson;
+﻿using System.Threading.Tasks;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Driver;
 using MongoDB.Entities;
 using Neo.Plugins.Attribute;
 
@@ -19,6 +21,12 @@ namespace Neo.Plugins.Models
 
         public GasMintBurnModel()
         {
+        }
+
+        public async static Task InitCollectionAndIndex()
+        {
+            await DB.CreateCollection<GasMintBurnModel>(new CreateCollectionOptions<GasMintBurnModel>());
+            await DB.Index<GasMintBurnModel>().Key(a => a.BlockIndex, KeyType.Ascending).Option(o => { o.Name = "_blockIndex_"; }).CreateAsync();
         }
     }
 }
