@@ -3,6 +3,7 @@ using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 using MongoDB.Entities;
 using Neo.Plugins.Attribute;
+using System.Linq;
 
 namespace Neo.Plugins.Models
 {
@@ -33,11 +34,11 @@ namespace Neo.Plugins.Models
         public ulong Timestamp { get; set; }
 
         [BsonElement("stacks")]
-        public bool[] Stacks { get; set; }
+        public string[] Stacks { get; set; }
 
         public ExecutionModel() { }
 
-        public ExecutionModel(UInt256 txid, UInt256 blockHash, ulong timestamp, string trigger, string vmstate, string exception, long gasconsumed, bool[] stacks)
+        public ExecutionModel(UInt256 txid, UInt256 blockHash, ulong timestamp, string trigger, string vmstate, string exception, long gasconsumed, Neo.VM.Types.StackItem[] stack)
         {
             Txid = txid;
             BlockHash = blockHash;
@@ -46,7 +47,22 @@ namespace Neo.Plugins.Models
             Exception = exception;
             GasConsumed = gasconsumed;
             Timestamp = timestamp;
-            Stacks = stacks;
+            Stacks = stack.Select(p => ParseStackItem(p)).ToArray();
+        }
+
+        public string ParseStackItem(Neo.VM.Types.StackItem stackItem)
+        {
+            switch (stackItem.Type)
+            {
+                case Neo.VM.Types.StackItemType.Boolean:
+                    return stackItem.GetBoolean().ToString();
+                case Neo.VM.Types.StackItemType.Integer:
+                    return stackItem.GetInteger().ToString();
+                case Neo.VM.Types.StackItemType.ByteString:
+                    return stackItem.GetString().ToString();
+                default:
+                    return "";
+            }
         }
 
         public static ExecutionModel Get(UInt256 txid,UInt256 blockHash, string trigger)

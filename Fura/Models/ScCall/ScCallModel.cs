@@ -30,13 +30,10 @@ namespace Neo.Plugins.Models
         [BsonElement("hexStringParams")]
         public string[] HexStringParams { get; set; }
 
-        [BsonElement("result")]
-        public bool Result { get; set; }
-
         [BsonElement("stack")]
         public string Vmstate { get; set; }
 
-        public ScCallModel(string vmstate, UInt256 txid,UInt160 originSender, UInt160 contractHash, string method, string callFlags, bool result, params string[] hexStringParams)
+        public ScCallModel(string vmstate, UInt256 txid,UInt160 originSender, UInt160 contractHash, string method, string callFlags, params string[] hexStringParams)
         {
             Vmstate = vmstate;
             Txid = txid;
@@ -45,7 +42,6 @@ namespace Neo.Plugins.Models
             Method = method;
             CallFlags = callFlags;
             HexStringParams = hexStringParams;
-            Result = result;
         }
 
         public async static Task InitCollectionAndIndex()

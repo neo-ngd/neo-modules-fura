@@ -238,27 +238,13 @@ namespace Neo.Plugins
             List<ScCallModel> list_ScCall = new List<ScCallModel>();
             if (applicationExecuted.Transaction is not null)
             {
-                var stacks = applicationExecuted.Stack.Select(p => p.GetBoolean()).ToArray();
-                executionModel = new ExecutionModel(applicationExecuted.Transaction.Hash, block.Hash, block.Timestamp, applicationExecuted.Trigger.ToString(), applicationExecuted.VMState.ToString(), applicationExecuted.Exception?.ToString(), applicationExecuted.GasConsumed, stacks); ;
+                executionModel = new ExecutionModel(applicationExecuted.Transaction.Hash, block.Hash, block.Timestamp, applicationExecuted.Trigger.ToString(), applicationExecuted.VMState.ToString(), applicationExecuted.Exception?.ToString(), applicationExecuted.GasConsumed, applicationExecuted.Stack); ;
                 //通过解析script得到调用了哪些合约哪些方法，从而处理一些特殊数据
                 list_ScCall = VM.Helper.Script2ScCallModels(applicationExecuted.Transaction.Script, applicationExecuted.Transaction.Hash, applicationExecuted.Transaction.Sender, applicationExecuted.VMState.ToString());
-                if (list_ScCall.Count == stacks.Length)
-                {
-                    for (var i = 0; i < list_ScCall.Count; i++)
-                    {
-
-                        list_ScCall[i].Result = stacks[i];
-                    }
-                }
-                else if(stacks.Length != 0)
-                {
-                    DebugModel debugModel = new(string.Format("list_ScCall.Count != stacks.Length, txid:{0}", applicationExecuted.Transaction.Hash));
-                    debugModel.SaveAsync().Wait();
-                }
             }
             else
             {
-                executionModel = new ExecutionModel(UInt256.Zero, block.Hash, block.Timestamp, applicationExecuted.Trigger.ToString(), applicationExecuted.VMState.ToString(), applicationExecuted.Exception?.ToString(), applicationExecuted.GasConsumed, applicationExecuted.Stack.Select(p => p.GetBoolean()).ToArray());
+                executionModel = new ExecutionModel(UInt256.Zero, block.Hash, block.Timestamp, applicationExecuted.Trigger.ToString(), applicationExecuted.VMState.ToString(), applicationExecuted.Exception?.ToString(), applicationExecuted.GasConsumed, applicationExecuted.Stack);
             }
             //处理script解析出来的合约调用信息
             if (list_ScCall.Count > 0)

@@ -63,7 +63,7 @@ namespace Neo.Plugins
             {
                  var sc = scCallModels[i];
                  var key = GetKey(sc.ContractHash, sc.Method);
-                 if (dic_filter.ContainsKey(key) && sc.Result && sc.Vmstate == "HALT")
+                 if (dic_filter.ContainsKey(key) && sc.Vmstate == "HALT")
                  {
                      dic_filter[key](sc, system, block, snapshot);
                  }
