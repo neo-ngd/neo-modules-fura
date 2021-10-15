@@ -93,9 +93,11 @@ namespace Neo.Plugins
             DBCache.Ins.cacheVote.AddNeedUpdate(voter, scCall.Txid, null, block.Index, candidate, candidatePubKey);
             //哪些candidate需要更新记录
             DBCache.Ins.cacheCandidate.AddNeedUpdate(candidate, scCall.HexStringParams[1], EnumCandidateState.Unknow);
-            if (DBCache.Ins.cacheVote.Get(voter) is not null)
+            //voter原先投给的candidate也需要更新一下
+            var voteModel = DBCache.Ins.cacheVote.Get(voter);
+            if (voteModel is not null)
             {
-                DBCache.Ins.cacheCandidate.AddNeedUpdate(scVoteCallModel.Candidate, scCall.HexStringParams[1], EnumCandidateState.Unknow);
+                DBCache.Ins.cacheCandidate.AddNeedUpdate(voteModel.Candidate, voteModel.CandidatePubKey, EnumCandidateState.Unknow);
             }
             return true;
         }
