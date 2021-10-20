@@ -88,7 +88,7 @@ namespace Neo.Plugins
                                 errLoopTimes++;
                                 DebugModel debugModel = new(string.Format("{0}---ExecApplicationExecuted----block: {1}, loopTimes:{2}, error: {3}", Settings.Default.PName, block.Index, errLoopTimes, e));
                                 debugModel.SaveAsync().Wait();
-                                if (errLoopTimes < 10)
+                                if (errLoopTimes < 100)
                                 {
                                     System.Threading.Thread.Sleep(Settings.Default.SleepTime * 100);
                                 }
@@ -140,7 +140,7 @@ namespace Neo.Plugins
                                 errLoopTimes++;
                                 DebugModel debugModel = new(string.Format("{0}---ExecBlock----block: {1}, loopTimes:{2}, error: {3}", Settings.Default.PName, block.Index, errLoopTimes, e));
                                 debugModel.SaveAsync().Wait();
-                                if (errLoopTimes < 10)
+                                if (errLoopTimes < 100)
                                 {
                                     System.Threading.Thread.Sleep(Settings.Default.SleepTime * 100);
                                 }
@@ -176,21 +176,24 @@ namespace Neo.Plugins
                 {
                     recordPersistModel = new RecordPersistModel() { BlockIndex = blockIndex, State = EnumRecordState.Pending.ToString(), PName = Settings.Default.PName, Timestamp = curTime };
                     DB.SaveAsync(recordPersistModel).Wait();
-                    return EnumRecordState.None;
+
+                    //二次验证
+                    return RegisterPersistInsert(blockIndex);
                 }
                 else if (recordPersistModel.State == EnumRecordState.Confirm.ToString())
                 {
                     return EnumRecordState.Confirm;
+                }
+                else if (recordPersistModel.PName == Settings.Default.PName)
+                {
+                    return EnumRecordState.None;
                 }
                 else if (recordPersistModel.State == EnumRecordState.Pending.ToString() && recordPersistModel.Timestamp + Settings.Default.WaitTime < curTime)
                 {
                     RecordPersistModel.Delete(blockIndex);
                     return EnumRecordState.Pending;
                 }
-                else if (recordPersistModel.PName == Settings.Default.PName)
-                {
-                    return EnumRecordState.None;
-                }
+
             }
             catch(Exception e)
             {
@@ -205,25 +208,28 @@ namespace Neo.Plugins
             {
                 long curTime = (DateTime.Now.ToUniversalTime().Ticks - 621355968000000000) / 10000000; //s
                 RecordCommitModel recordCommitModel = RecordCommitModel.Get(blockIndex);
+
                 if (recordCommitModel is null)
                 {
                     recordCommitModel = new RecordCommitModel() { BlockIndex = blockIndex, State = EnumRecordState.Pending.ToString(), PName = Settings.Default.PName, Timestamp = curTime };
                     DB.SaveAsync(recordCommitModel).Wait();
-                    return EnumRecordState.None;
+                    //二次验证
+                    return RegisterCommitInsert(blockIndex);
                 }
                 else if (recordCommitModel.State == EnumRecordState.Confirm.ToString())
                 {
                     return EnumRecordState.Confirm;
-                } 
-                else if (recordCommitModel.State == EnumRecordState.Pending.ToString() && recordCommitModel.Timestamp + Settings.Default.WaitTime < curTime)
-                {
-                    RecordCommitModel.Delete(blockIndex);
-                    return EnumRecordState.Pending;
                 }
                 else if (recordCommitModel.PName == Settings.Default.PName)
                 {
                     return EnumRecordState.None;
                 }
+                else if (recordCommitModel.State == EnumRecordState.Pending.ToString() && recordCommitModel.Timestamp + Settings.Default.WaitTime < curTime)
+                {
+                    RecordCommitModel.Delete(blockIndex);
+                    return EnumRecordState.Pending;
+                }
+
             }
             catch(Exception e)
             {
