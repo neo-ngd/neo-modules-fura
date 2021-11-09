@@ -36,7 +36,7 @@ namespace Neo.Plugins.VM
 
     public static class Helper
     {
-        public static List<ScCallModel> Script2ScCallModels(byte[] script, UInt256 txid, UInt160 sender)
+        public static List<ScCallModel> Script2ScCallModels(byte[] script, UInt256 txid, UInt160 sender, string vmstate)
         {
             List<ScCallModel> scCalls = new List<ScCallModel>();
             List<Instruction> instructions = Script2Instruction(script).ToArray().Reverse().ToList(); ;
@@ -66,7 +66,7 @@ namespace Neo.Plugins.VM
                     {
                         hexParams[i] = instructions[++index].Operand.Span.ToHexString();
                     }
-                    scCalls.Add(new(txid, sender, UInt160.Parse(contractHash), method, callFlags.ToString(), hexParams));
+                    scCalls.Add(new(vmstate, txid, sender, UInt160.Parse(contractHash), method, callFlags.ToString(), hexParams));
                 }
             }
             return scCalls;

@@ -26,11 +26,89 @@ namespace UnitFuraTest
         [TestMethod]
         public void TestScript2Executions()
         {
-            var base64String = "SAQoBW93bmVyKBSJIuFGyl/Nb3OPav8NWTMY8XoFWSgEbmFtZSgEVGVzdCgLZGVzY3JpcHRpb24oDFRlc3QgZm9yIE5GVCgFaW1hZ2UoU2h0dHBzOi8vYmFmeWJlaWdiYndza2JiNHgyc2x5ZXkyZXlrb3ZyNHFuNnRkeXJrNTV2cTIyYnRqMmV5aWNobm9iaWkuaXBmcy5kd2ViLmxpbmsv";
+            var base64String = "MG3uriu8UCtAWwkG4FRDCxac590P3HrlnbF4l27+6QU=";
             //var base64String = "DCEC13y+vWO9KxAxFwg0SF0rjAJoq/n2N89uNwqrDwi+WHsMFIU5Il4pKR6Kf5xyOLaNS67/1PekEsAfDAR2b3RlDBT1Y+pAvCg9TQ4FxI6jBbPyoHNA70FifVtS";
             var script = Convert.FromBase64String(base64String);
             var str = Encoding.UTF8.GetString(script);
-            var scCalls = Neo.Plugins.VM.Helper.Script2ScCallModels(script,UInt256.Zero, UInt160.Zero);
+            var scCalls = Neo.Plugins.VM.Helper.Script2ScCallModels(script, UInt256.Zero, UInt160.Zero, "");
+        }
+
+        public static string TryParseByteString(string str)
+        {
+            try
+            {
+                str = Encoding.UTF8.GetString(Convert.FromBase64String(str));
+            }
+            catch
+            {
+
+            }
+
+            return str;
+        }
+
+        public static void WriteArray(Utf8JsonWriter writer)
+        {
+
+        }
+
+        public static void WriteObject(Utf8JsonWriter writer,string key, JsonElement element)
+        {
+            var type = element.GetProperty("type").GetString();
+            string value = "";
+            switch (type)
+            {
+                case "ByteString":
+                    value = TryParseByteString(element.GetProperty("value").GetString());
+                    writer.WriteString(key, value);
+                    break;
+                case "Integer":
+                    value = element.GetProperty("value").GetString();
+                    writer.WriteString(key, value);
+                    break;
+                case "Map":
+                    var values = element.GetProperty("value");
+                    foreach (var _e in values.EnumerateArray())
+                    {
+                        var _key = GetValue(_e.GetProperty("key"));
+                        WriteObject(writer, _key, _e.GetProperty("value"));
+                    }
+                    break;
+                case "Array":
+                    writer.WriteStartObject(key);
+                    foreach (var _e in element.GetProperty("value").EnumerateArray())
+                    {
+                        JsonElement jsonElement;
+                        var suc = _e.TryGetProperty("key", out jsonElement);
+                        if (suc)
+                        {
+                            var _key = GetValue(jsonElement);
+                            WriteObject(writer, _key, _e.GetProperty("value"));
+                        }
+                        else
+                        {
+                            WriteObject(writer, "", _e);
+                        }
+                    }
+                    writer.WriteEndObject();
+                    break;
+            }
+        }
+
+        public static string GetValue(JsonElement element)
+        {
+            var type = element.GetProperty("type").GetString();
+            string value = "";
+            switch (type)
+            {
+                case "ByteString":
+                    value = TryParseByteString(element.GetProperty("value").GetString());
+                    break;
+                case "Integer":
+                    value = element.GetProperty("value").GetString();
+                    break;
+            }
+            return value;
         }
 
         [TestMethod]
@@ -48,7 +126,7 @@ namespace UnitFuraTest
             var base64String = "CwwUaUQlwX8eu3xl3jAmyDHrTEnW174SwB8MBHZvdGUMFPVj6kC8KD1NDgXEjqMFs/Kgc0DvQWJ9W1I=";
             //var base64String = "DCEC13y+vWO9KxAxFwg0SF0rjAJoq/n2N89uNwqrDwi+WHsMFIU5Il4pKR6Kf5xyOLaNS67/1PekEsAfDAR2b3RlDBT1Y+pAvCg9TQ4FxI6jBbPyoHNA70FifVtS";
             var script = Convert.FromBase64String(base64String);
-            var scCalls = Neo.Plugins.VM.Helper.Script2ScCallModels(script, UInt256.Zero, UInt160.Zero);
+            var scCalls = Neo.Plugins.VM.Helper.Script2ScCallModels(script, UInt256.Zero, UInt160.Zero, "");
             UInt160 voter = null;
             bool succ = UInt160.TryParse(scCalls[0].HexStringParams[0].HexToBytes().Reverse().ToArray().ToHexString(), out voter);
             if (scCalls[0].HexStringParams[1] != string.Empty)

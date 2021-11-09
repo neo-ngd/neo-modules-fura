@@ -8,12 +8,6 @@
     "Log": false,
     "SleepTime": 10,
     "WaitTime": 120,
-    "ConnectionString": "",
-    "Indexs": [
-      {
-        "collection": "",
-        "index": []
-      }
-    ]
+    "ConnectionString": ""
   }
 }

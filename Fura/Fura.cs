@@ -88,7 +88,7 @@ namespace Neo.Plugins
                                 errLoopTimes++;
                                 DebugModel debugModel = new(string.Format("{0}---ExecApplicationExecuted----block: {1}, loopTimes:{2}, error: {3}", Settings.Default.PName, block.Index, errLoopTimes, e));
                                 debugModel.SaveAsync().Wait();
-                                if (errLoopTimes < 10)
+                                if (errLoopTimes < 100)
                                 {
                                     System.Threading.Thread.Sleep(Settings.Default.SleepTime * 100);
                                 }
@@ -140,7 +140,7 @@ namespace Neo.Plugins
                                 errLoopTimes++;
                                 DebugModel debugModel = new(string.Format("{0}---ExecBlock----block: {1}, loopTimes:{2}, error: {3}", Settings.Default.PName, block.Index, errLoopTimes, e));
                                 debugModel.SaveAsync().Wait();
-                                if (errLoopTimes < 10)
+                                if (errLoopTimes < 100)
                                 {
                                     System.Threading.Thread.Sleep(Settings.Default.SleepTime * 100);
                                 }
@@ -176,21 +176,24 @@ namespace Neo.Plugins
                 {
                     recordPersistModel = new RecordPersistModel() { BlockIndex = blockIndex, State = EnumRecordState.Pending.ToString(), PName = Settings.Default.PName, Timestamp = curTime };
                     DB.SaveAsync(recordPersistModel).Wait();
-                    return EnumRecordState.None;
+
+                    //二次验证
+                    return RegisterPersistInsert(blockIndex);
                 }
                 else if (recordPersistModel.State == EnumRecordState.Confirm.ToString())
                 {
                     return EnumRecordState.Confirm;
+                }
+                else if (recordPersistModel.PName == Settings.Default.PName)
+                {
+                    return EnumRecordState.None;
                 }
                 else if (recordPersistModel.State == EnumRecordState.Pending.ToString() && recordPersistModel.Timestamp + Settings.Default.WaitTime < curTime)
                 {
                     RecordPersistModel.Delete(blockIndex);
                     return EnumRecordState.Pending;
                 }
-                else if (recordPersistModel.PName == Settings.Default.PName)
-                {
-                    return EnumRecordState.None;
-                }
+
             }
             catch(Exception e)
             {
@@ -205,25 +208,28 @@ namespace Neo.Plugins
             {
                 long curTime = (DateTime.Now.ToUniversalTime().Ticks - 621355968000000000) / 10000000; //s
                 RecordCommitModel recordCommitModel = RecordCommitModel.Get(blockIndex);
+
                 if (recordCommitModel is null)
                 {
                     recordCommitModel = new RecordCommitModel() { BlockIndex = blockIndex, State = EnumRecordState.Pending.ToString(), PName = Settings.Default.PName, Timestamp = curTime };
                     DB.SaveAsync(recordCommitModel).Wait();
-                    return EnumRecordState.None;
+                    //二次验证
+                    return RegisterCommitInsert(blockIndex);
                 }
                 else if (recordCommitModel.State == EnumRecordState.Confirm.ToString())
                 {
                     return EnumRecordState.Confirm;
-                } 
-                else if (recordCommitModel.State == EnumRecordState.Pending.ToString() && recordCommitModel.Timestamp + Settings.Default.WaitTime < curTime)
-                {
-                    RecordCommitModel.Delete(blockIndex);
-                    return EnumRecordState.Pending;
                 }
                 else if (recordCommitModel.PName == Settings.Default.PName)
                 {
                     return EnumRecordState.None;
                 }
+                else if (recordCommitModel.State == EnumRecordState.Pending.ToString() && recordCommitModel.Timestamp + Settings.Default.WaitTime < curTime)
+                {
+                    RecordCommitModel.Delete(blockIndex);
+                    return EnumRecordState.Pending;
+                }
+
             }
             catch(Exception e)
             {
@@ -238,13 +244,13 @@ namespace Neo.Plugins
             List<ScCallModel> list_ScCall = new List<ScCallModel>();
             if (applicationExecuted.Transaction is not null)
             {
-                executionModel = new ExecutionModel(applicationExecuted.Transaction.Hash, block.Hash, block.Timestamp, applicationExecuted.Trigger.ToString(), applicationExecuted.VMState.ToString(), applicationExecuted.Exception?.ToString(), applicationExecuted.GasConsumed); ;
+                executionModel = new ExecutionModel(applicationExecuted.Transaction.Hash, block.Hash, block.Timestamp, applicationExecuted.Trigger.ToString(), applicationExecuted.VMState.ToString(), applicationExecuted.Exception?.ToString(), applicationExecuted.GasConsumed, applicationExecuted.Stack); ;
                 //通过解析script得到调用了哪些合约哪些方法，从而处理一些特殊数据
-                list_ScCall = VM.Helper.Script2ScCallModels(applicationExecuted.Transaction.Script, applicationExecuted.Transaction.Hash, applicationExecuted.Transaction.Sender);
+                list_ScCall = VM.Helper.Script2ScCallModels(applicationExecuted.Transaction.Script, applicationExecuted.Transaction.Hash, applicationExecuted.Transaction.Sender, applicationExecuted.VMState.ToString());
             }
             else
             {
-                executionModel = new ExecutionModel(UInt256.Zero, block.Hash, block.Timestamp, applicationExecuted.Trigger.ToString(), applicationExecuted.VMState.ToString(), applicationExecuted.Exception?.ToString(), applicationExecuted.GasConsumed);
+                executionModel = new ExecutionModel(UInt256.Zero, block.Hash, block.Timestamp, applicationExecuted.Trigger.ToString(), applicationExecuted.VMState.ToString(), applicationExecuted.Exception?.ToString(), applicationExecuted.GasConsumed, applicationExecuted.Stack);
             }
             //处理script解析出来的合约调用信息
             if (list_ScCall.Count > 0)
@@ -318,7 +324,7 @@ namespace Neo.Plugins
                     if (candidateModel is null)
                     {
                         var votes = Neo.Plugins.VM.Helper.GetCandidateVotes(c, system, snapshot);
-                        candidateModel = new CandidateModel(hash, true, votes.ToString(), true);
+                        candidateModel = new CandidateModel(hash, false, votes.ToString(), true);
                     }
                     candidateModel.IsCommittee = true;
                     return candidateModel;
