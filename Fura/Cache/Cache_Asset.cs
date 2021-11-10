@@ -18,7 +18,7 @@ namespace Neo.Plugins.Cache
     {
         public UInt160 Hash;
         public ulong Time;
-        public UInt256 Txid;
+        public EnumAssetType AssetType;
     }
 
     public class CacheAsset : IDBCache
@@ -38,9 +38,9 @@ namespace Neo.Plugins.Cache
             D_Asset = new ConcurrentDictionary<UInt160, CacheAssetParams>();
         }
 
-        public void AddNeedUpdate(UInt160 contractHash, ulong time, UInt256 txid)
+        public void AddNeedUpdate(UInt160 contractHash, ulong time, EnumAssetType assetType)
         {
-            D_Asset[contractHash] = new() { Hash = contractHash , Time = time, Txid = txid};
+            D_Asset[contractHash] = new() { Hash = contractHash , Time = time, AssetType = assetType };
         }
 
         public List<CacheAssetParams> GetNeedUpdate()
@@ -54,23 +54,10 @@ namespace Neo.Plugins.Cache
             Parallel.For(0, list.Count, (i) =>
             {
                 //获取asset的decimals totalsupply等信息
-                var t = Neo.Plugins.VM.Helper.GetAssetInfo(system, snapshot, list[i].Hash);
+                var t = VM.Helper.GetAssetInfo(system, snapshot, list[i].Hash);
                 StorageKey key = new KeyBuilder(Neo.SmartContract.Native.NativeContract.ContractManagement.Id, 8).Add(list[i].Hash);
                 ContractState contract = snapshot.TryGet(key)?.GetInteroperable<ContractState>();
-                EnumAssetType type;
-                if (contract.Manifest.SupportedStandards.Contains("NEP-17"))
-                {
-                    type = EnumAssetType.NEP17;
-                }
-                else if (contract.Manifest.SupportedStandards.Contains("NEP-11"))
-                {
-                    type = EnumAssetType.NEP11;
-                }
-                else
-                {
-                    type = EnumAssetType.Unknown;
-                }
-                AddOrUpdate(list[i].Hash, list[i].Time, contract.Manifest.Name, t.Item2, t.Item1, t.Item3, type);
+                AddOrUpdate(list[i].Hash, list[i].Time, contract.Manifest.Name, t.Item2, t.Item1, t.Item3, list[i].AssetType);
             });
         }
 
