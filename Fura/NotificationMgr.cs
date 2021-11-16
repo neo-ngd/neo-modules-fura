@@ -279,7 +279,11 @@ namespace Neo.Plugins
             {
                 assetType = EnumAssetType.Unknown;
             }
-            dic_AssetType.Add(hash, assetType);
+            lock (dic_AssetType)
+            {
+                if (!dic_AssetType.ContainsKey(hash))
+                    dic_AssetType.Add(hash, assetType);
+            }
             return assetType;
         }
     }
