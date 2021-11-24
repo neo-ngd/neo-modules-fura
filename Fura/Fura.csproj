@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <RootNamespace>Neo.Plugins</RootNamespace>
   </PropertyGroup>
 
@@ -14,12 +14,13 @@
     <Folder Include="VM\" />
     <Folder Include="Models\ScCall\" />
     <Folder Include="Cache\" />
+    <Folder Include="Notification\" />
   </ItemGroup>
 
     <ItemGroup>
     <PackageReference Include="MongoDB.Bson" Version="2.13.0" />
     <PackageReference Include="MongoDB.Driver" Version="2.13.0" />
-    <PackageReference Include="Neo" Version="3.0.3" />
+    <PackageReference Include="Neo" Version="3.1.0" />
     <PackageReference Include="MongoDB.Entities" Version="20.20.0" />
   </ItemGroup>
     <ItemGroup>
@@ -28,6 +29,7 @@
       <None Remove="MongoDB.Entities" />
       <None Remove="Cache\" />
       <None Remove="Newtonsoft.Json" />
+      <None Remove="Notification\" />
     </ItemGroup>
     <ItemGroup>
       <Content Include="Fura\config.json">

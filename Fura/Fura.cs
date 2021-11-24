@@ -13,6 +13,7 @@ using Neo.Plugins.Cache;
 using System.Threading.Tasks;
 using System.IO;
 using System.Reflection;
+using Neo.Plugins.Notification;
 
 namespace Neo.Plugins
 {

@@ -8,6 +8,7 @@
     "Log": false,
     "SleepTime": 10,
     "WaitTime": 120,
-    "ConnectionString": ""
+    "ConnectionString": "",
+    "MarketContractId" : 0
   }
 }
