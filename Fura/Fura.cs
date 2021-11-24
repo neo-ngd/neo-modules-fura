@@ -245,8 +245,11 @@ namespace Neo.Plugins
             if (applicationExecuted.Transaction is not null)
             {
                 executionModel = new ExecutionModel(applicationExecuted.Transaction.Hash, block.Hash, block.Timestamp, applicationExecuted.Trigger.ToString(), applicationExecuted.VMState.ToString(), applicationExecuted.Exception?.ToString(), applicationExecuted.GasConsumed, applicationExecuted.Stack); ;
-                //通过解析script得到调用了哪些合约哪些方法，从而处理一些特殊数据
-                list_ScCall = VM.Helper.Script2ScCallModels(applicationExecuted.Transaction.Script, applicationExecuted.Transaction.Hash, applicationExecuted.Transaction.Sender, applicationExecuted.VMState.ToString());
+                if(executionModel.VmState == "HALT")
+                {
+                    //通过解析script得到调用了哪些合约哪些方法，从而处理一些特殊数据
+                    list_ScCall = VM.Helper.Script2ScCallModels(applicationExecuted.Transaction.Script, applicationExecuted.Transaction.Hash, applicationExecuted.Transaction.Sender, applicationExecuted.VMState.ToString());
+                }
             }
             else
             {

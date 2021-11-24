@@ -10,6 +10,7 @@ using Neo.Network.P2P.Payloads;
 using Neo.Persistence;
 using Neo.Plugins.Cache;
 using Neo.Plugins.Models;
+using Neo.SmartContract;
 using Neo.SmartContract.Native;
 
 namespace Neo.Plugins
@@ -19,6 +20,8 @@ namespace Neo.Plugins
         Dictionary<UInt256, Func<NotificationModel, NeoSystem, Block, DataCache, bool>> dic_filter = new Dictionary<UInt256, Func<NotificationModel, NeoSystem, Block, DataCache, bool>>();
 
         private static NotificationMgr ins;
+
+        private static Dictionary<UInt160, EnumAssetType> dic_AssetType = new Dictionary<UInt160, EnumAssetType>();
 
         private static object lockObj = new object();
 
@@ -126,6 +129,10 @@ namespace Neo.Plugins
 
         private (UInt160,UInt160) ExecuteNep17TransferNotification(NotificationModel notificationModel, NeoSystem system, Block block, DataCache snapshot)
         {
+            EnumAssetType assetType = GetAssetType(snapshot, notificationModel.ContractHash);
+            if (assetType != EnumAssetType.NEP17)
+                return (UInt160.Zero, UInt160.Zero);
+
             UInt256 txid = notificationModel.Txid;
             UInt256 blockHash = notificationModel.BlockHash;
             ulong timestamp = notificationModel.Timestamp;
@@ -155,13 +162,16 @@ namespace Neo.Plugins
 
             if (from == UInt160.Zero || from is null) //如果from为0x0，意味着发行代币，这个时候需要更新资产的总量
             {
-                DBCache.Ins.cacheAsset.AddNeedUpdate(notificationModel.ContractHash, block.Timestamp, notificationModel.Txid);
+                DBCache.Ins.cacheAsset.AddNeedUpdate(notificationModel.ContractHash, block.Timestamp, EnumAssetType.NEP17);
             }
             return (from, to);
         }
 
         private void ExecuteNep11TransferNotification(NotificationModel notificationModel, NeoSystem system, Block block, DataCache snapshot)
         {
+            EnumAssetType assetType = GetAssetType(snapshot, notificationModel.ContractHash);
+            if (assetType != EnumAssetType.NEP11)
+                return ;
             UInt256 txid = notificationModel.Txid;
             UInt256 blockHash = notificationModel.BlockHash;
             ulong timestamp = notificationModel.Timestamp;
@@ -206,7 +216,7 @@ namespace Neo.Plugins
             DBCache.Ins.cacheNep11Properties.AddNeedUpdate(notificationModel.ContractHash, tokenId);
             if (from == UInt160.Zero || from is null) //如果from为0x0，意味着发行代币，这个时候需要更新资产的总量
             {
-                DBCache.Ins.cacheAsset.AddNeedUpdate(notificationModel.ContractHash, block.Timestamp, notificationModel.Txid);
+                DBCache.Ins.cacheAsset.AddNeedUpdate(notificationModel.ContractHash, block.Timestamp, EnumAssetType.NEP11);
             }
         }
 
@@ -218,6 +228,12 @@ namespace Neo.Plugins
                 bool succ = UInt160.TryParse(Convert.FromBase64String(notificationModel.State.Values[0].Value).Reverse().ToArray().ToHexString(), out contractHash);
                 if (!succ) return false;
                 DBCache.Ins.cacheContract.AddNeedUpdate(contractHash, block.Timestamp, notificationModel.Txid);
+                //如果合约还是asset，也一并更新了
+                EnumAssetType assetType = GetAssetType(snapshot, contractHash);
+                if (assetType is EnumAssetType.NEP11 || assetType is EnumAssetType.NEP17)
+                {
+                    DBCache.Ins.cacheAsset.AddNeedUpdate(contractHash, block.Timestamp, assetType);
+                }
             }
             return true;
         }
@@ -231,13 +247,44 @@ namespace Neo.Plugins
                 if (!succ) return false;
                 DBCache.Ins.cacheContract.AddNeedUpdate(contractHash, block.Timestamp, notificationModel.Txid);
                 //如果合约还是asset，也一并更新了
-                var assetModel = DBCache.Ins.cacheAsset.Get(contractHash);
-                if(assetModel is not null)
+                EnumAssetType assetType = GetAssetType(snapshot, contractHash);
+                if (assetType is EnumAssetType.NEP11 || assetType is EnumAssetType.NEP17)
                 {
-                    DBCache.Ins.cacheAsset.AddNeedUpdate(assetModel.Hash, block.Timestamp, notificationModel.Txid);
+                    DBCache.Ins.cacheAsset.AddNeedUpdate(contractHash, block.Timestamp, assetType);
                 }
             }
             return true;
+        }
+
+        private EnumAssetType GetAssetType(DataCache snapshot, UInt160 hash)
+        {
+            if (dic_AssetType.ContainsKey(hash))
+                return dic_AssetType[hash];
+            StorageKey key = new KeyBuilder(Neo.SmartContract.Native.NativeContract.ContractManagement.Id, 8).Add(hash);
+            ContractState contract = snapshot.TryGet(key)?.GetInteroperable<ContractState>();
+            EnumAssetType assetType;
+            if (contract is null)
+            {
+                assetType = EnumAssetType.Unknown;
+            }
+            else if (contract.Manifest.SupportedStandards.Contains("NEP-17"))
+            {
+                assetType = EnumAssetType.NEP17;
+            }
+            else if (contract.Manifest.SupportedStandards.Contains("NEP-11"))
+            {
+                assetType = EnumAssetType.NEP11;
+            }
+            else
+            {
+                assetType = EnumAssetType.Unknown;
+            }
+            lock (dic_AssetType)
+            {
+                if (!dic_AssetType.ContainsKey(hash))
+                    dic_AssetType.Add(hash, assetType);
+            }
+            return assetType;
         }
     }
 }
