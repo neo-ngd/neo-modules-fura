@@ -39,14 +39,17 @@ namespace Neo.Plugins.Models
             User = user;
             EventName = eventName;
             Params = @params;
-            timestamp = Timestamp;
+            Timestamp = timestamp;
         }
 
         public async static Task InitCollectionAndIndex()
         {
             await DB.CreateCollection<MarketNotificationModel>(new CreateCollectionOptions<MarketNotificationModel>());
             await DB.Index<MarketNotificationModel>().Key(a => a.User, KeyType.Ascending).Option(o => { o.Name = "_user_"; }).CreateAsync();
+            await DB.Index<MarketNotificationModel>().Key(a => a.Timestamp, KeyType.Ascending).Option(o => { o.Name = "_timestamp_"; }).CreateAsync();
+            await DB.Index<MarketNotificationModel>().Key(a => a.EventName, KeyType.Ascending).Option(o => { o.Name = "_eventname_"; }).CreateAsync();
             await DB.Index<MarketNotificationModel>().Key(a => a.User, KeyType.Ascending).Key(a => a.Timestamp, KeyType.Ascending).Option(o => { o.Name = "_user_timestamp_"; }).CreateAsync();
+            await DB.Index<MarketNotificationModel>().Key(a => a.User, KeyType.Ascending).Key(a => a.EventName, KeyType.Ascending).Key(a => a.Timestamp, KeyType.Ascending).Option(o => { o.Name = "_user_eventname_timestamp_"; }).CreateAsync();
         }
     }
 }

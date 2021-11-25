@@ -19,7 +19,7 @@ namespace Neo.Plugins.Models
         public int _ID { get; set; }
 
         [BsonElement("updatecounter")]
-        public ushort UpdateCounter { get; set; }
+        public short UpdateCounter { get; set; }
 
         [BsonElement("nef")]
         public BsonString Nef { get; set; }
@@ -39,7 +39,7 @@ namespace Neo.Plugins.Models
 
         public ContractModel() { }
 
-        public ContractModel(UInt160 hash,string name, int id, ushort updateCounter, JObject nef,JObject manifest, ulong createTime, UInt256 txid)
+        public ContractModel(UInt160 hash,string name, int id, short updateCounter, JObject nef,JObject manifest, ulong createTime, UInt256 txid)
         {
             Hash = hash;
             Name = name;

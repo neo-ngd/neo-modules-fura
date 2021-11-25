@@ -66,7 +66,12 @@ namespace Neo.Plugins.Models
         public async static Task InitCollectionAndIndex()
         {
             await DB.CreateCollection<MarketModel>(new CreateCollectionOptions<MarketModel>());
-            await DB.Index<MarketModel>().Key(a => a.Asset, KeyType.Ascending).Key(a => a.Owner, KeyType.Ascending).Key(a => a.TokenId, KeyType.Ascending).Option(o => { o.Name = "_asset_owner_tokenid_unique_"; o.Unique = true; }).CreateAsync();
+            await DB.Index<MarketModel>().Key(a => a.Asset, KeyType.Ascending).Key(a => a.Amount, KeyType.Ascending).Option(o => { o.Name = "_asset_amount_"; }).CreateAsync();
+            await DB.Index<MarketModel>().Key(a => a.AuctionAsset, KeyType.Ascending).Key(a => a.Amount, KeyType.Ascending).Option(o => { o.Name = "_auctionAsset_amount_"; }).CreateAsync();
+            await DB.Index<MarketModel>().Key(a => a.Asset, KeyType.Ascending).Key(a => a.AuctionAsset, KeyType.Ascending).Key(a => a.Amount, KeyType.Ascending).Option(o => { o.Name = "_asset_auctionAsset_amount_"; }).CreateAsync();
+            await DB.Index<MarketModel>().Key(a => a.AuctionType, KeyType.Ascending).Key(a => a.Deadline, KeyType.Ascending).Key(a => a.Amount, KeyType.Ascending).Option(o => { o.Name = "_auctionType_deadline_amount_"; }).CreateAsync();
+            await DB.Index<MarketModel>().Key(a => a.Asset, KeyType.Ascending).Key(a => a.AuctionType, KeyType.Ascending).Key(a => a.Deadline, KeyType.Ascending).Key(a => a.Amount, KeyType.Ascending).Option(o => { o.Name = "_asset_auctionType_deadline_amount_"; }).CreateAsync();
+            await DB.Index<MarketModel>().Key(a => a.Asset, KeyType.Ascending).Key(a => a.AuctionAsset, KeyType.Ascending).Key(a => a.AuctionType, KeyType.Ascending).Key(a => a.Deadline, KeyType.Ascending).Key(a => a.Amount, KeyType.Ascending).Option(o => { o.Name = "_asset_auctionAsset_auctionType_deadline_amount_"; }).CreateAsync();
         }
     }
 }

@@ -27,7 +27,6 @@ namespace Neo.Plugins.Notification
             }
             return true;
         }
-
     }
 }
 

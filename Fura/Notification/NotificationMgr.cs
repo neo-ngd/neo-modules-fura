@@ -47,6 +47,7 @@ namespace Neo.Plugins.Notification
             Register("Transfer", ExecuteTransferNotification);
             Register("Deploy", ExecuteDeployNotification);
             Register("Update", ExecuteUpdateNotification);
+            Register("Destroy", ExecuteDestroyNotification);
 
             Register("Auction", ExecuteAuctionNotification);
             Register("Bid", ExecuteBidNotification);
