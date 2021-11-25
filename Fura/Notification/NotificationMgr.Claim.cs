@@ -57,13 +57,10 @@ namespace Neo.Plugins.Notification
                 DBCache.Ins.cacheMarket.AddNeedUpdate(false, asset, notificationModel.ContractHash, tokenId, null, 0, null, null, 0, 0, null, 0);
 
                 JObject json = new JObject();
-                json["user"] = user?.ToString();
-                json["asset"] = asset?.ToString();
-                json["tokenId"] = tokenId;
                 json["auctionType"] = auctionType.ToString();
                 json["auctionAsset"] = auctionAsset?.ToString();
                 json["bidAmount"] = bidAmount.ToString();
-                DBCache.Ins.cacheMatketNotification.Add(notificationModel.Txid, notificationModel.BlockHash, user, "Claim", json.ToString(), notificationModel.Timestamp);
+                DBCache.Ins.cacheMatketNotification.Add(notificationModel.Txid, notificationModel.BlockHash, user, asset, tokenId, "Claim", json.ToString(), notificationModel.Timestamp);
             }
             return true;
         }

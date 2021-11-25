@@ -59,14 +59,11 @@ namespace Neo.Plugins.Notification
                 //暴露出通知的时候，nft的所有者已经变成了market了。
                 DBCache.Ins.cacheMarket.AddNeedUpdate(false, asset, notificationModel.ContractHash, tokenId, notificationModel.ContractHash, auctionType, user, auctionAsset, auctionAmount, deadline, null, 0);
                 JObject json = new JObject();
-                json["user"] = user?.ToString();
-                json["asset"] = asset?.ToString();
-                json["tokenId"] = tokenId;
                 json["auctionType"] = auctionType.ToString();
                 json["auctionAsset"] = auctionAsset?.ToString();
                 json["auctionAmount"] = auctionAmount.ToString();
                 json["deadline"] = deadline.ToString();
-                DBCache.Ins.cacheMatketNotification.Add(notificationModel.Txid, notificationModel.BlockHash, user, "Auction", json.ToString(), notificationModel.Timestamp);
+                DBCache.Ins.cacheMatketNotification.Add(notificationModel.Txid, notificationModel.BlockHash, user, asset, tokenId, "Auction", json.ToString(), notificationModel.Timestamp);
             }
             return true;
         }

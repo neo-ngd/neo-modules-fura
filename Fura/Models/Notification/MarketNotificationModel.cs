@@ -23,22 +23,31 @@ namespace Neo.Plugins.Models
         [BsonElement("user")]
         public UInt160 User { get; set; }
 
+        [UInt160AsString]
+        [BsonElement("asset")]
+        public UInt160 Asset { get; set; }
+
+        [BsonElement("tokenid")]
+        public string TokenId { get; set; }
+
         [BsonElement("eventname")]
         public string EventName { get; set; }
 
-        [BsonElement("params")]
-        public string Params { get; set; }
+        [BsonElement("extendData")]
+        public string ExtendData { get; set; }
 
         [BsonElement("timestamp")]
         public ulong Timestamp { get; set; }
 
-        public MarketNotificationModel(UInt256 txid, UInt256 blockhash, UInt160 user, string eventName, string @params, ulong timestamp)
+        public MarketNotificationModel(UInt256 txid, UInt256 blockhash, UInt160 user, UInt160 asset, string tokenId, string eventName, string extendData, ulong timestamp)
         {
             Txid = txid;
             BlockHash = blockhash;
             User = user;
+            Asset = asset;
+            TokenId = tokenId;
             EventName = eventName;
-            Params = @params;
+            ExtendData = extendData;
             Timestamp = timestamp;
         }
 

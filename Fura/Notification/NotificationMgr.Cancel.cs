@@ -44,11 +44,7 @@ namespace Neo.Plugins.Notification
                 MarketModel marketModel = DBCache.Ins.cacheMarket.Get(notificationModel.ContractHash, asset, tokenId);
                 DBCache.Ins.cacheMarket.AddNeedUpdate(false, asset, notificationModel.ContractHash, tokenId, null, 0, null, null, 0, 0, null, 0);
 
-                JObject json = new JObject();
-                json["user"] = user?.ToString();
-                json["asset"] = asset?.ToString();
-                json["tokenId"] = tokenId;
-                DBCache.Ins.cacheMatketNotification.Add(notificationModel.Txid, notificationModel.BlockHash, user, "Cancel", json.ToString(), notificationModel.Timestamp);
+                DBCache.Ins.cacheMatketNotification.Add(notificationModel.Txid, notificationModel.BlockHash, user, user, tokenId, "Cancel", "{}", notificationModel.Timestamp);
             }
             return true;
         }
