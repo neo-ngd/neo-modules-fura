@@ -25,6 +25,7 @@ namespace Neo.Plugins.Cache
         public ulong Deadline;
         public UInt160 Bidder;
         public BigInteger BidAmount;
+        public BigInteger Timestamp;
     }
 
     public class CacheMarket : IDBCache
@@ -33,17 +34,18 @@ namespace Neo.Plugins.Cache
 
         private ConcurrentDictionary<(UInt160, UInt160, string), MarketModel> D_MarketModel;
 
-        public void AddNeedUpdate(bool SimpleUpdate, UInt160 asset, UInt160 owner, string tokenid)
+        public void AddNeedUpdate(bool SimpleUpdate, UInt160 asset, UInt160 owner, string tokenid, BigInteger timestamp)
         {
             D_Market[(asset, owner, tokenid)] = new()
             {
                 Asset = asset,
                 TokenId = tokenid,
-                Owner = owner
+                Owner = owner,
+                Timestamp = timestamp
             };
         }
 
-        public void AddNeedUpdate(bool simpleUpdate, UInt160 asset, UInt160 owner, string tokenid, UInt160 market, BigInteger auctionType, UInt160 auctor, UInt160 auctionAsset, BigInteger auctionAmount, BigInteger deadline, UInt160 bidder, BigInteger bidAmount)
+        public void AddNeedUpdate(bool simpleUpdate, UInt160 asset, UInt160 owner, string tokenid, UInt160 market, BigInteger auctionType, UInt160 auctor, UInt160 auctionAsset, BigInteger auctionAmount, BigInteger deadline, UInt160 bidder, BigInteger bidAmount, BigInteger timestamp)
         {
             D_Market[(asset, owner, tokenid)] = new()
             {
@@ -58,7 +60,8 @@ namespace Neo.Plugins.Cache
                 AuctionAmount = auctionAmount,
                 Deadline = (ulong)deadline,
                 Bidder = bidder,
-                BidAmount = bidAmount
+                BidAmount = bidAmount,
+                Timestamp = timestamp
             };
         }
 
@@ -110,10 +113,12 @@ namespace Neo.Plugins.Cache
                     BidAmount = MongoDB.Bson.BsonDecimal128.Create(cacheMarketParams.BidAmount.ToString()),
                     Bidder = cacheMarketParams.Bidder,
                     Deadline = cacheMarketParams.Deadline,
+                    Timestamp = cacheMarketParams.Timestamp
                 };
             }
             else if(cacheMarketParams.SimpleUpdate)
             {
+                marketModel.Timestamp = cacheMarketParams.Timestamp;
                 marketModel.Amount = MongoDB.Bson.BsonDecimal128.Create(cacheMarketParams.Amount.ToString());
             }
             else
@@ -130,6 +135,7 @@ namespace Neo.Plugins.Cache
                 marketModel.BidAmount = MongoDB.Bson.BsonDecimal128.Create(cacheMarketParams.BidAmount.ToString());
                 marketModel.Bidder = cacheMarketParams.Bidder;
                 marketModel.Deadline = cacheMarketParams.Deadline;
+                marketModel.Timestamp = cacheMarketParams.Timestamp;
             }
             D_MarketModel[((marketModel.Owner, marketModel.Asset, marketModel.TokenId))] = marketModel;
         }

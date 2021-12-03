@@ -53,6 +53,9 @@ namespace Neo.Plugins.Models
         [BsonElement("bidAmount")]
         public BsonDecimal128 BidAmount { get; set; }
 
+        [BsonElement("timestamp")]
+        public BigInteger Timestamp;
+
         public static MarketModel Get(UInt160 owner, UInt160 asset, string tokenid)
         {
             MarketModel marketModel = DB.Find<MarketModel>().Match(a => a.Owner == owner && a.Asset == asset && a.TokenId == tokenid).ExecuteFirstAsync().Result;

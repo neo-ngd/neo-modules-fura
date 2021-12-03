@@ -54,7 +54,7 @@ namespace Neo.Plugins.Notification
                 succ = succ && BigInteger.TryParse(notificationModel.State.Values[5].Value, out bidAmount);
 
                 MarketModel marketModel = DBCache.Ins.cacheMarket.Get(notificationModel.ContractHash, asset, tokenId);
-                DBCache.Ins.cacheMarket.AddNeedUpdate(false, asset, notificationModel.ContractHash, tokenId, null, 0, null, null, 0, 0, null, 0);
+                DBCache.Ins.cacheMarket.AddNeedUpdate(false, asset, notificationModel.ContractHash, tokenId, null, 0, null, null, 0, 0, null, 0, block.Timestamp);
 
                 JObject json = new JObject();
                 json["auctionType"] = auctionType.ToString();
