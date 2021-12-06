@@ -54,7 +54,7 @@ namespace Neo.Plugins.Models
         public BsonDecimal128 BidAmount { get; set; }
 
         [BsonElement("timestamp")]
-        public BigInteger Timestamp;
+        public ulong Timestamp;
 
         public static MarketModel Get(UInt160 owner, UInt160 asset, string tokenid)
         {

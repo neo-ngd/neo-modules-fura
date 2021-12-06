@@ -5,7 +5,7 @@
     <RootNamespace>Neo.Plugins</RootNamespace>
   </PropertyGroup>
 
-    <ItemGroup>
+  <ItemGroup>
     <Folder Include="Models\" />
     <Folder Include="DB\" />
     <Folder Include="Attribute\" />
@@ -17,21 +17,12 @@
     <Folder Include="Notification\" />
   </ItemGroup>
 
-    <ItemGroup>
+  <ItemGroup>
     <PackageReference Include="MongoDB.Bson" Version="2.13.0" />
     <PackageReference Include="MongoDB.Driver" Version="2.13.0" />
     <PackageReference Include="MongoDB.Entities" Version="20.20.0" />
     <PackageReference Include="Neo" Version="3.0.3" />
   </ItemGroup>
-    <ItemGroup>
-      <None Remove="Fura\config.json" />
-      <None Remove="Models\ScCall\" />
-      <None Remove="MongoDB.Entities" />
-      <None Remove="Cache\" />
-      <None Remove="Newtonsoft.Json" />
-      <None Remove="Notification\" />
-      <None Remove="Neo" />
-    </ItemGroup>
     <ItemGroup>
       <Content Include="Fura\config.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

@@ -113,12 +113,12 @@ namespace Neo.Plugins.Cache
                     BidAmount = MongoDB.Bson.BsonDecimal128.Create(cacheMarketParams.BidAmount.ToString()),
                     Bidder = cacheMarketParams.Bidder,
                     Deadline = cacheMarketParams.Deadline,
-                    Timestamp = cacheMarketParams.Timestamp
+                    Timestamp = (ulong)cacheMarketParams.Timestamp
                 };
             }
             else if(cacheMarketParams.SimpleUpdate)
             {
-                marketModel.Timestamp = cacheMarketParams.Timestamp;
+                marketModel.Timestamp = (ulong)cacheMarketParams.Timestamp;
                 marketModel.Amount = MongoDB.Bson.BsonDecimal128.Create(cacheMarketParams.Amount.ToString());
             }
             else
@@ -135,7 +135,7 @@ namespace Neo.Plugins.Cache
                 marketModel.BidAmount = MongoDB.Bson.BsonDecimal128.Create(cacheMarketParams.BidAmount.ToString());
                 marketModel.Bidder = cacheMarketParams.Bidder;
                 marketModel.Deadline = cacheMarketParams.Deadline;
-                marketModel.Timestamp = cacheMarketParams.Timestamp;
+                marketModel.Timestamp = (ulong)cacheMarketParams.Timestamp;
             }
             D_MarketModel[((marketModel.Owner, marketModel.Asset, marketModel.TokenId))] = marketModel;
         }
