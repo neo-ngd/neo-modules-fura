@@ -17,6 +17,7 @@ namespace Neo.Plugins.Notification
             ContractModel contractModel= DBCache.Ins.cacheContract.Get(notificationModel.ContractHash);
             if (contractModel._ID == Settings.Default.MarketContractId && notificationModel.State.Values.Count() == 7)
             {
+                BigInteger nonce = 0;
                 UInt160 user = null;
                 UInt160 asset = null;
                 string tokenId = "";
@@ -25,36 +26,37 @@ namespace Neo.Plugins.Notification
                 BigInteger auctionAmount = 0;
                 BigInteger deadline = 0;
                 bool succ = true;
+                succ = succ && BigInteger.TryParse(notificationModel.State.Values[0].Value, out nonce);
                 //user
-                if (notificationModel.State.Values[0].Value is not null)
-                {
-                    succ = succ && UInt160.TryParse(Convert.FromBase64String(notificationModel.State.Values[0].Value).Reverse().ToArray().ToHexString(), out user);
-                }
-                //asset
                 if (notificationModel.State.Values[1].Value is not null)
                 {
-                    succ = succ && UInt160.TryParse(Convert.FromBase64String(notificationModel.State.Values[1].Value).Reverse().ToArray().ToHexString(), out asset);
+                    succ = succ && UInt160.TryParse(Convert.FromBase64String(notificationModel.State.Values[1].Value).Reverse().ToArray().ToHexString(), out user);
+                }
+                //asset
+                if (notificationModel.State.Values[2].Value is not null)
+                {
+                    succ = succ && UInt160.TryParse(Convert.FromBase64String(notificationModel.State.Values[2].Value).Reverse().ToArray().ToHexString(), out asset);
                 }
                 //tokenid
-                if (notificationModel.State.Values[2].Type == "Integer")  //需要转换一下
+                if (notificationModel.State.Values[3].Type == "Integer")  //需要转换一下
                 {
-                    tokenId = Convert.ToBase64String(BigInteger.Parse(notificationModel.State.Values[2].Value).ToByteArray());
+                    tokenId = Convert.ToBase64String(BigInteger.Parse(notificationModel.State.Values[3].Value).ToByteArray());
                 }
                 else
                 {
-                    tokenId = notificationModel.State.Values[2].Value;
+                    tokenId = notificationModel.State.Values[3].Value;
                 }
                 //type
-                succ = succ && BigInteger.TryParse(notificationModel.State.Values[3].Value, out auctionType);
+                succ = succ && BigInteger.TryParse(notificationModel.State.Values[4].Value, out auctionType);
                 //auctionAsset
-                if (notificationModel.State.Values[4].Value is not null)
+                if (notificationModel.State.Values[5].Value is not null)
                 {
-                    succ = succ && UInt160.TryParse(Convert.FromBase64String(notificationModel.State.Values[4].Value).Reverse().ToArray().ToHexString(), out auctionAsset);
+                    succ = succ && UInt160.TryParse(Convert.FromBase64String(notificationModel.State.Values[5].Value).Reverse().ToArray().ToHexString(), out auctionAsset);
                 }
                 //auctionAmount
-                succ = succ && BigInteger.TryParse(notificationModel.State.Values[5].Value, out auctionAmount);
+                succ = succ && BigInteger.TryParse(notificationModel.State.Values[6].Value, out auctionAmount);
                 //deadline
-                succ = succ && BigInteger.TryParse(notificationModel.State.Values[6].Value, out deadline);
+                succ = succ && BigInteger.TryParse(notificationModel.State.Values[7].Value, out deadline);
 
                 //暴露出通知的时候，nft的所有者已经变成了market了。
                 DBCache.Ins.cacheMarket.AddNeedUpdate(false, asset, notificationModel.ContractHash, tokenId, notificationModel.ContractHash, auctionType, user, auctionAsset, auctionAmount, deadline, null, 0, block.Timestamp);
@@ -63,7 +65,7 @@ namespace Neo.Plugins.Notification
                 json["auctionAsset"] = auctionAsset?.ToString();
                 json["auctionAmount"] = auctionAmount.ToString();
                 json["deadline"] = deadline.ToString();
-                DBCache.Ins.cacheMatketNotification.Add(notificationModel.Txid, notificationModel.BlockHash, user, asset, tokenId, "Auction", json.ToString(), notificationModel.Timestamp);
+                DBCache.Ins.cacheMatketNotification.Add(notificationModel.Txid, notificationModel.BlockHash, nonce, user, asset, tokenId, "Auction", json.ToString(), notificationModel.Timestamp);
             }
             return true;
         }

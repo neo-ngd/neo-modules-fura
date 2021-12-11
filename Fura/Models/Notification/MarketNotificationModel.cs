@@ -11,6 +11,9 @@ namespace Neo.Plugins.Models
     [Collection("MarketNotification")]
     public class MarketNotificationModel : Entity
     {
+        [BsonElement("nonce")]
+        public ulong Nonce { get; set; }
+
         [UInt256AsString]
         [BsonElement("txid")]
         public UInt256 Txid { get; set; }
@@ -39,8 +42,9 @@ namespace Neo.Plugins.Models
         [BsonElement("timestamp")]
         public ulong Timestamp { get; set; }
 
-        public MarketNotificationModel(UInt256 txid, UInt256 blockhash, UInt160 user, UInt160 asset, string tokenId, string eventName, string extendData, ulong timestamp)
+        public MarketNotificationModel(UInt256 txid, UInt256 blockhash, BigInteger nonce, UInt160 user, UInt160 asset, string tokenId, string eventName, string extendData, ulong timestamp)
         {
+            Nonce = (ulong)nonce;
             Txid = txid;
             BlockHash = blockhash;
             User = user;
