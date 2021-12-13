@@ -15,7 +15,7 @@ namespace Neo.Plugins.Notification
         private bool ExecuteCancelNotification(NotificationModel notificationModel, NeoSystem system, Block block, DataCache snapshot)
         {
             ContractModel contractModel = DBCache.Ins.cacheContract.Get(notificationModel.ContractHash);
-            if (contractModel._ID == Settings.Default.MarketContractId && notificationModel.State.Values.Count() == 3)
+            if (contractModel._ID == Settings.Default.MarketContractId)
             {
                 BigInteger nonce = 0;
                 UInt160 user = null;
