@@ -75,6 +75,14 @@ namespace Neo.Plugins.Models
             await DB.Index<MarketModel>().Key(a => a.AuctionType, KeyType.Ascending).Key(a => a.Deadline, KeyType.Ascending).Key(a => a.Amount, KeyType.Ascending).Option(o => { o.Name = "_auctionType_deadline_amount_"; }).CreateAsync();
             await DB.Index<MarketModel>().Key(a => a.Asset, KeyType.Ascending).Key(a => a.AuctionType, KeyType.Ascending).Key(a => a.Deadline, KeyType.Ascending).Key(a => a.Amount, KeyType.Ascending).Option(o => { o.Name = "_asset_auctionType_deadline_amount_"; }).CreateAsync();
             await DB.Index<MarketModel>().Key(a => a.Asset, KeyType.Ascending).Key(a => a.AuctionAsset, KeyType.Ascending).Key(a => a.AuctionType, KeyType.Ascending).Key(a => a.Deadline, KeyType.Ascending).Key(a => a.Amount, KeyType.Ascending).Option(o => { o.Name = "_asset_auctionAsset_auctionType_deadline_amount_"; }).CreateAsync();
+
+
+            await DB.Index<MarketModel>().Key(a => a.Asset, KeyType.Ascending).Key(a => a.Amount, KeyType.Ascending).Key(a => a.Market, KeyType.Ascending).Option(o => { o.Name = "_asset_amount_market_"; }).CreateAsync();
+            await DB.Index<MarketModel>().Key(a => a.AuctionAsset, KeyType.Ascending).Key(a => a.Amount, KeyType.Ascending).Key(a => a.Market, KeyType.Ascending).Option(o => { o.Name = "_auctionAsset_amount_"; }).CreateAsync();
+            await DB.Index<MarketModel>().Key(a => a.Asset, KeyType.Ascending).Key(a => a.AuctionAsset, KeyType.Ascending).Key(a => a.Amount, KeyType.Ascending).Key(a => a.Market, KeyType.Ascending).Option(o => { o.Name = "_asset_auctionAsset_amount_market_"; }).CreateAsync();
+            await DB.Index<MarketModel>().Key(a => a.AuctionType, KeyType.Ascending).Key(a => a.Deadline, KeyType.Ascending).Key(a => a.Amount, KeyType.Ascending).Key(a => a.Market, KeyType.Ascending).Option(o => { o.Name = "_auctionType_deadline_amount_market_"; }).CreateAsync();
+            await DB.Index<MarketModel>().Key(a => a.Asset, KeyType.Ascending).Key(a => a.AuctionType, KeyType.Ascending).Key(a => a.Deadline, KeyType.Ascending).Key(a => a.Amount, KeyType.Ascending).Key(a => a.Market, KeyType.Ascending).Option(o => { o.Name = "_asset_auctionType_deadline_market_amount_"; }).CreateAsync();
+            await DB.Index<MarketModel>().Key(a => a.Asset, KeyType.Ascending).Key(a => a.AuctionAsset, KeyType.Ascending).Key(a => a.AuctionType, KeyType.Ascending).Key(a => a.Deadline, KeyType.Ascending).Key(a => a.Amount, KeyType.Ascending).Key(a => a.Market, KeyType.Ascending).Option(o => { o.Name = "_asset_auctionAsset_auctionType_deadline_market_amount_"; }).CreateAsync();
         }
     }
 }
