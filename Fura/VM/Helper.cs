@@ -39,7 +39,7 @@ namespace Neo.Plugins.VM
         public static List<ScCallModel> Script2ScCallModels(byte[] script, UInt256 txid, UInt160 sender, string vmstate)
         {
             List<ScCallModel> scCalls = new List<ScCallModel>();
-            List<Instruction> instructions = Script2Instruction(script).ToArray().Reverse().ToList(); ;
+            List<Instruction> instructions = Script2Instruction(txid, script).ToArray().Reverse().ToList(); ;
             for (var index = 0; index < instructions.Count; index++)
             {
                 var instruction = instructions[index];
@@ -72,16 +72,25 @@ namespace Neo.Plugins.VM
             return scCalls;
         }
 
-        public static List<Instruction> Script2Instruction(byte[] script)
+        public static List<Instruction> Script2Instruction(UInt256 txid, byte[] script)
         {
-            List<Instruction> instructions = new List<Instruction>();
-            Script s = new Script(script,true);
-            for (int ip = 0; ip < s.Length; ip += s.GetInstruction(ip).Size)
+            try
             {
-                var instruction = s.GetInstruction(ip);
-                instructions.Add(instruction);
+                List<Instruction> instructions = new List<Instruction>();
+                Script s = new Script(script, true);
+                for (int ip = 0; ip < s.Length; ip += s.GetInstruction(ip).Size)
+                {
+                    var instruction = s.GetInstruction(ip);
+                    instructions.Add(instruction);
+                }
+                return instructions;
             }
-            return instructions;
+            catch (Exception e)
+            {
+                DebugModel debugModel = new(string.Format("Script2Instruction----txid: {0}", txid));
+                debugModel.SaveAsync().Wait();
+            }
+            return new List<Instruction>();
         }
 
         public static CallFlags Opcode2CallFlags(OpCode opCode)
