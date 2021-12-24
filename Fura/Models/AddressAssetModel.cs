@@ -53,6 +53,7 @@ namespace Neo.Plugins.Models
             await DB.Index<AddressAssetModel>().Key(a => a.Balance, KeyType.Ascending).Key(a => a.Address, KeyType.Ascending).Option(o => { o.Name = "_balance_address_"; }).CreateAsync();
             await DB.Index<AddressAssetModel>().Key(a => a.Address, KeyType.Ascending).Option(o => { o.Name = "_address_"; }).CreateAsync();
             await DB.Index<AddressAssetModel>().Key(a => a.Balance, KeyType.Ascending).Option(o => { o.Name = "_balance_"; }).CreateAsync();
+            await DB.Index<AddressAssetModel>().Key(a => a.Asset, KeyType.Ascending).Option(o => { o.Name = "_asset_"; }).CreateAsync();
         }
     }
 }
