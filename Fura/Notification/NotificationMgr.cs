@@ -21,8 +21,6 @@ namespace Neo.Plugins.Notification
 
         private static NotificationMgr ins;
 
-        private static Dictionary<UInt160, EnumAssetType> dic_AssetType = new Dictionary<UInt160, EnumAssetType>();
-
         private static object lockObj = new object();
 
         public static NotificationMgr Ins
@@ -86,8 +84,6 @@ namespace Neo.Plugins.Notification
 
         private EnumAssetType GetAssetType(DataCache snapshot, UInt160 hash)
         {
-            if (dic_AssetType.ContainsKey(hash))
-                return dic_AssetType[hash];
             StorageKey key = new KeyBuilder(Neo.SmartContract.Native.NativeContract.ContractManagement.Id, 8).Add(hash);
             ContractState contract = snapshot.TryGet(key)?.GetInteroperable<ContractState>();
             EnumAssetType assetType;
@@ -106,11 +102,6 @@ namespace Neo.Plugins.Notification
             else
             {
                 assetType = EnumAssetType.Unknown;
-            }
-            lock (dic_AssetType)
-            {
-                if (!dic_AssetType.ContainsKey(hash))
-                    dic_AssetType.Add(hash, assetType);
             }
             return assetType;
         }
