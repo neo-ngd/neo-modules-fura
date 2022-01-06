@@ -21,7 +21,7 @@ namespace Neo.Plugins
 
         public int WaitTime { get; set; }
 
-        public int MarketContractId { get; set; }
+        public int[] MarketContractIds { get; set; }
 
         private Settings(IConfigurationSection section)
         {
@@ -36,7 +36,7 @@ namespace Neo.Plugins
             this.PName = section.GetValue("PName", Environment.CurrentDirectory);
             this.SleepTime = section.GetValue("SleepTime", 10);
             this.WaitTime = section.GetValue("WaitTime", 900);
-            this.MarketContractId = section.GetValue("MarketContractId", 0);
+            this.MarketContractIds = section.GetValue("MarketContractId", new int[] { 0 });
         }
 
         public static void Load(IConfigurationSection section)

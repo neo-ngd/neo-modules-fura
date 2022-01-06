@@ -22,9 +22,9 @@ namespace Neo.Plugins.Cache
             L_MarketNotificationModel = new ConcurrentBag<MarketNotificationModel>();
         }
 
-        public void Add(UInt256 txid, UInt256 blockHash, BigInteger nonce, UInt160 user, UInt160 asset, string tokenId, string eventName, string extendData, ulong timestamp)
+        public void Add(UInt256 txid, UInt256 blockHash, UInt160 market, BigInteger nonce, UInt160 user, UInt160 asset, string tokenId, string eventName, string extendData, ulong timestamp)
         {
-            MarketNotificationModel marketNotificationModel = new(txid, blockHash, nonce, user, asset, tokenId, eventName, extendData, timestamp);
+            MarketNotificationModel marketNotificationModel = new(txid, blockHash, nonce, user, market, asset, tokenId, eventName, extendData, timestamp);
             L_MarketNotificationModel.Add(marketNotificationModel);
         }
 

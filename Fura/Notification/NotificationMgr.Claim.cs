@@ -15,7 +15,7 @@ namespace Neo.Plugins.Notification
         private bool ExecuteClaimNotification(NotificationModel notificationModel, NeoSystem system, Block block, DataCache snapshot)
         {
             ContractModel contractModel = DBCache.Ins.cacheContract.Get(notificationModel.ContractHash);
-            if (contractModel._ID == Settings.Default.MarketContractId)
+            if (Settings.Default.MarketContractIds.Contains(contractModel._ID))
             {
                 BigInteger nonce = 0;
                 UInt160 user = null;
@@ -61,7 +61,7 @@ namespace Neo.Plugins.Notification
                 json["auctionType"] = auctionType.ToString();
                 json["auctionAsset"] = auctionAsset?.ToString();
                 json["bidAmount"] = bidAmount.ToString();
-                DBCache.Ins.cacheMatketNotification.Add(notificationModel.Txid, notificationModel.BlockHash, nonce, user, asset, tokenId, "Claim", json.ToString(), notificationModel.Timestamp);
+                DBCache.Ins.cacheMatketNotification.Add(notificationModel.Txid, notificationModel.BlockHash, notificationModel.ContractHash, nonce, user, asset, tokenId, "Claim", json.ToString(), notificationModel.Timestamp);
             }
             return true;
         }

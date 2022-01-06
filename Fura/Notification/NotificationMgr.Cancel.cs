@@ -15,7 +15,7 @@ namespace Neo.Plugins.Notification
         private bool ExecuteCancelNotification(NotificationModel notificationModel, NeoSystem system, Block block, DataCache snapshot)
         {
             ContractModel contractModel = DBCache.Ins.cacheContract.Get(notificationModel.ContractHash);
-            if (contractModel._ID == Settings.Default.MarketContractId)
+            if (Settings.Default.MarketContractIds.Contains(contractModel._ID))
             {
                 BigInteger nonce = 0;
                 UInt160 user = null;
@@ -46,7 +46,7 @@ namespace Neo.Plugins.Notification
                 MarketModel marketModel = DBCache.Ins.cacheMarket.Get(notificationModel.ContractHash, asset, tokenId);
                 DBCache.Ins.cacheMarket.AddNeedUpdate(false, asset, notificationModel.ContractHash, tokenId, null, 0, null, null, 0, 0, null, 0, block.Timestamp);
 
-                DBCache.Ins.cacheMatketNotification.Add(notificationModel.Txid, notificationModel.BlockHash, nonce, user, user, tokenId, "Cancel", "{}", notificationModel.Timestamp);
+                DBCache.Ins.cacheMatketNotification.Add(notificationModel.Txid, notificationModel.BlockHash, notificationModel.ContractHash, nonce, user, user, tokenId, "Cancel", "{}", notificationModel.Timestamp);
             }
             return true;
         }

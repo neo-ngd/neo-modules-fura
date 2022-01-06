@@ -27,6 +27,10 @@ namespace Neo.Plugins.Models
         public UInt160 User { get; set; }
 
         [UInt160AsString]
+        [BsonElement("market")]
+        public UInt160 Market { get; set; }
+
+        [UInt160AsString]
         [BsonElement("asset")]
         public UInt160 Asset { get; set; }
 
@@ -42,12 +46,13 @@ namespace Neo.Plugins.Models
         [BsonElement("timestamp")]
         public ulong Timestamp { get; set; }
 
-        public MarketNotificationModel(UInt256 txid, UInt256 blockhash, BigInteger nonce, UInt160 user, UInt160 asset, string tokenId, string eventName, string extendData, ulong timestamp)
+        public MarketNotificationModel(UInt256 txid, UInt256 blockhash, BigInteger nonce, UInt160 user, UInt160 market, UInt160 asset, string tokenId, string eventName, string extendData, ulong timestamp)
         {
             Nonce = (ulong)nonce;
             Txid = txid;
             BlockHash = blockhash;
             User = user;
+            Market = market;
             Asset = asset;
             TokenId = tokenId;
             EventName = eventName;
