@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
+using System.Linq;
 
 namespace Neo.Plugins
 {
@@ -16,7 +17,7 @@ namespace Neo.Plugins
 
         public string PName { get; }
 
-        public static Settings Default { get;}
+        public static Settings Default { get; private set; }
 
         public int SleepTime { get; }
 
@@ -30,7 +31,7 @@ namespace Neo.Plugins
             this.Host = section.GetValue("Host", "127.0.0.1");
             this.Port = section.GetValue("Port", 27017);
             this.User = section.GetValue("User", "admin");
-            this.Password = section.GetValue("Password","admin");
+            this.Password = section.GetValue("Password", "admin");
             this.ConnectionString = section.GetValue("ConnectionString", "");
             this.Log = section.GetValue("Log", true);
             Console.WriteLine(Environment.CurrentDirectory);
@@ -39,7 +40,8 @@ namespace Neo.Plugins
             this.WaitTime = section.GetValue("WaitTime", 900);
             this.MarketContractIds = section.GetSection("MarketContractId").Exists()
                 ? section.GetSection("MarketContractId").GetChildren().Select(p => int.Parse(p.Value)).ToArray()
-                : new[] { 0 }; 
+                : new[] { 0 };
+        }
 
         public static void Load(IConfigurationSection section)
         {
