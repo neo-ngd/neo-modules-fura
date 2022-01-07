@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
 
 namespace Neo.Plugins
@@ -15,13 +16,13 @@ namespace Neo.Plugins
 
         public string PName { get; }
 
-        public static Settings Default { get; private set; }
+        public static Settings Default { get;}
 
-        public int SleepTime { get; set; }
+        public int SleepTime { get; }
 
-        public int WaitTime { get; set; }
+        public int WaitTime { get;}
 
-        public int[] MarketContractIds { get; set; }
+        public IReadOnlyList<int> MarketContractIds { get; }
 
         private Settings(IConfigurationSection section)
         {
@@ -36,8 +37,9 @@ namespace Neo.Plugins
             this.PName = section.GetValue("PName", Environment.CurrentDirectory);
             this.SleepTime = section.GetValue("SleepTime", 10);
             this.WaitTime = section.GetValue("WaitTime", 900);
-            this.MarketContractIds = section.GetValue("MarketContractId", new int[] { 0 });
-        }
+            this.MarketContractIds = section.GetSection("MarketContractId").Exists()
+                ? section.GetSection("MarketContractId").GetChildren().Select(p => int.Parse(p.Value)).ToArray()
+                : new[] { 0 }; 
 
         public static void Load(IConfigurationSection section)
         {
