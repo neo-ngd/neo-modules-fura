@@ -37,14 +37,14 @@ namespace Neo.Plugins.Cache
             {
                 //获取上一个块的total来计算本块的数据
                 GasMintBurnModel gasMintBurnModel_Pre = GasMintBurnModel.Get(GasMintBurnParams.BlockIndex - 1);
-                totalBurnAmount = BigInteger.Parse(gasMintBurnModel_Pre.TotalBurnAmount.ToString()) + GasMintBurnParams.BurnAmount;
-                totalMintAmount = BigInteger.Parse(gasMintBurnModel_Pre.TotalMintAmount.ToString()) + GasMintBurnParams.MintAmount;
+                totalBurnAmount = BigInteger.Parse(gasMintBurnModel_Pre.TotalBurnAmount.ToString());
+                totalMintAmount = BigInteger.Parse(gasMintBurnModel_Pre.TotalMintAmount.ToString());
             }
             GasMintBurnModel gasMintBurnModel = new GasMintBurnModel()
             {
                 BurnAmount = BsonDecimal128.Create(GasMintBurnParams.BurnAmount.ToString()),
-                TotalBurnAmount = BsonDecimal128.Create(totalBurnAmount.ToString()),
-                MintAmount = BsonDecimal128.Create(GasMintBurnParams.MintAmount.ToString()),
+                TotalBurnAmount = BsonDecimal128.Create((totalBurnAmount + GasMintBurnParams.BurnAmount).ToString()),
+                MintAmount = BsonDecimal128.Create((GasMintBurnParams.MintAmount + GasMintBurnParams.MintAmount).ToString()),
                 TotalMintAmount = BsonDecimal128.Create(totalMintAmount.ToString()),
                 BlockIndex = GasMintBurnParams.BlockIndex
             };
