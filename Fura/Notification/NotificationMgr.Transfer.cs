@@ -147,8 +147,8 @@ namespace Neo.Plugins.Notification
             DBCache.Ins.cacheAddressAsset.AddNeedUpdate(from, notificationModel.ContractHash, tokenId);
             DBCache.Ins.cacheAddressAsset.AddNeedUpdate(to, notificationModel.ContractHash, tokenId);
 
-            DBCache.Ins.cacheMarket.AddNeedUpdate(true, notificationModel.ContractHash, from, tokenId, block.Timestamp);
-            DBCache.Ins.cacheMarket.AddNeedUpdate(true, notificationModel.ContractHash, to, tokenId, block.Timestamp);
+            DBCache.Ins.cacheMarket.AddNeedUpdate(notificationModel.Index, true, notificationModel.ContractHash, from, tokenId, block.Timestamp);
+            DBCache.Ins.cacheMarket.AddNeedUpdate(notificationModel.Index, true, notificationModel.ContractHash, to, tokenId, block.Timestamp);
 
             DBCache.Ins.cacheAddress.Add(block.Timestamp, from, to);
             DBCache.Ins.cacheNep11Properties.AddNeedUpdate(notificationModel.ContractHash, tokenId);

@@ -12,6 +12,7 @@ namespace Neo.Plugins.Cache
 {
     public class CacheMarketParams
     {
+        public int NotificationIndex;
         public bool SimpleUpdate;
         public UInt160 Owner;
         public UInt160 Asset;
@@ -34,35 +35,50 @@ namespace Neo.Plugins.Cache
 
         private ConcurrentDictionary<(UInt160, UInt160, string), MarketModel> D_MarketModel;
 
-        public void AddNeedUpdate(bool SimpleUpdate, UInt160 asset, UInt160 owner, string tokenid, BigInteger timestamp)
+        public void AddNeedUpdate(int notificationIndex, bool simpleUpdate, UInt160 asset, UInt160 owner, string tokenid, BigInteger timestamp)
         {
-            D_Market[(asset, owner, tokenid)] = new()
+            lock (D_Market)
             {
-                Asset = asset,
-                TokenId = tokenid,
-                Owner = owner,
-                Timestamp = timestamp
-            };
+                if (!D_Market.ContainsKey((asset, owner, tokenid)) || notificationIndex > D_Market[(asset, owner, tokenid)].NotificationIndex )
+                {
+                    D_Market[(asset, owner, tokenid)] = new()
+                    {
+                        NotificationIndex = notificationIndex,
+                        SimpleUpdate = simpleUpdate,
+                        Asset = asset,
+                        TokenId = tokenid,
+                        Owner = owner,
+                        Timestamp = timestamp
+                    };
+                }
+            }
+
         }
 
-        public void AddNeedUpdate(bool simpleUpdate, UInt160 asset, UInt160 owner, string tokenid, UInt160 market, BigInteger auctionType, UInt160 auctor, UInt160 auctionAsset, BigInteger auctionAmount, BigInteger deadline, UInt160 bidder, BigInteger bidAmount, BigInteger timestamp)
+        public void AddNeedUpdate(int notificationIndex, bool simpleUpdate, UInt160 asset, UInt160 owner, string tokenid, UInt160 market, BigInteger auctionType, UInt160 auctor, UInt160 auctionAsset, BigInteger auctionAmount, BigInteger deadline, UInt160 bidder, BigInteger bidAmount, BigInteger timestamp)
         {
-            D_Market[(asset, owner, tokenid)] = new()
+            lock (D_Market)
             {
-                SimpleUpdate = simpleUpdate,
-                Asset = asset,
-                TokenId = tokenid,
-                Owner = owner,
-                Market = market,
-                AuctionType = (uint)auctionType,
-                Auctor = auctor,
-                AuctionAsset = auctionAsset,
-                AuctionAmount = auctionAmount,
-                Deadline = (ulong)deadline,
-                Bidder = bidder,
-                BidAmount = bidAmount,
-                Timestamp = timestamp
-            };
+                if (!D_Market.ContainsKey((asset, owner, tokenid)) || notificationIndex > D_Market[(asset, owner, tokenid)].NotificationIndex)
+                {
+                    D_Market[(asset, owner, tokenid)] = new()
+                    {
+                        SimpleUpdate = simpleUpdate,
+                        Asset = asset,
+                        TokenId = tokenid,
+                        Owner = owner,
+                        Market = market,
+                        AuctionType = (uint)auctionType,
+                        Auctor = auctor,
+                        AuctionAsset = auctionAsset,
+                        AuctionAmount = auctionAmount,
+                        Deadline = (ulong)deadline,
+                        Bidder = bidder,
+                        BidAmount = bidAmount,
+                        Timestamp = timestamp
+                    };
+                }
+            }
         }
 
         public List<CacheMarketParams> GetNeedUpdate()

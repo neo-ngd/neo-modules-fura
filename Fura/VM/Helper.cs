@@ -85,7 +85,7 @@ namespace Neo.Plugins.VM
                 }
                 return instructions;
             }
-            catch (Exception e)
+            catch
             {
                 DebugModel debugModel = new(string.Format("Script2Instruction----txid: {0}", txid));
                 debugModel.SaveAsync().Wait();

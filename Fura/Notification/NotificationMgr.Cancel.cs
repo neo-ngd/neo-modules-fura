@@ -44,7 +44,7 @@ namespace Neo.Plugins.Notification
                 }
                 //暴露出通知的时候，nft的所有者已经变成了原先的用户了。
                 MarketModel marketModel = DBCache.Ins.cacheMarket.Get(notificationModel.ContractHash, asset, tokenId);
-                DBCache.Ins.cacheMarket.AddNeedUpdate(false, asset, notificationModel.ContractHash, tokenId, null, 0, null, null, 0, 0, null, 0, block.Timestamp);
+                DBCache.Ins.cacheMarket.AddNeedUpdate(notificationModel.Index, false, asset, notificationModel.ContractHash, tokenId, null, 0, null, null, 0, 0, null, 0, block.Timestamp);
 
                 DBCache.Ins.cacheMatketNotification.Add(notificationModel.Txid, notificationModel.BlockHash, notificationModel.ContractHash, nonce, user, asset, tokenId, "Cancel", "{}", notificationModel.Timestamp);
             }
