@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Numerics;
+using System.Text;
 using Neo.Network.P2P.Payloads;
 using Neo.Persistence;
 using Neo.Plugins.Cache;
@@ -77,11 +78,12 @@ namespace Neo.Plugins.Notification
             bool succ = true;
             if (notificationModel.State.Values[0].Value is not null)
             {
-                succ = succ && UInt160.TryParse(Convert.FromBase64String(notificationModel.State.Values[0].Value).Reverse().ToArray().ToHexString(), out from);
+                succ = succ && TryParseBase64ToScriptHash(notificationModel.State.Values[0].Value, out from);
+
             }
             if (notificationModel.State.Values[1].Value is not null)
             {
-                succ = succ && UInt160.TryParse(Convert.FromBase64String(notificationModel.State.Values[1].Value).Reverse().ToArray().ToHexString(), out to);
+                succ = succ && TryParseBase64ToScriptHash(notificationModel.State.Values[1].Value, out to);
             }
             succ = succ && BigInteger.TryParse(notificationModel.State.Values[2].Value, out value);
             if (!succ)
@@ -117,11 +119,11 @@ namespace Neo.Plugins.Notification
             bool succ = true;
             if (notificationModel.State.Values[0].Value is not null)
             {
-                succ = succ && UInt160.TryParse(Convert.FromBase64String(notificationModel.State.Values[0].Value).Reverse().ToArray().ToHexString(), out from);
+                succ = succ && TryParseBase64ToScriptHash(notificationModel.State.Values[0].Value, out from);
             }
             if (notificationModel.State.Values[1].Value is not null)
             {
-                succ = succ && UInt160.TryParse(Convert.FromBase64String(notificationModel.State.Values[1].Value).Reverse().ToArray().ToHexString(), out to);
+                succ = succ && TryParseBase64ToScriptHash(notificationModel.State.Values[1].Value, out to);
             }
             succ = succ && BigInteger.TryParse(notificationModel.State.Values[2].Value, out value);
             string tokenId = "";
@@ -156,6 +158,17 @@ namespace Neo.Plugins.Notification
             {
                 DBCache.Ins.cacheAsset.AddNeedUpdate(notificationModel.ContractHash, block.Timestamp, EnumAssetType.NEP11);
             }
+        }
+
+        private bool TryParseBase64ToScriptHash(string base64String, out UInt160 addr)
+        {
+            bool _succ = true;
+            _succ = UInt160.TryParse(Convert.FromBase64String(base64String).Reverse().ToArray().ToHexString(), out addr);
+            if (!_succ)
+            {
+                _succ = UInt160.TryParse(Encoding.UTF8.GetString(Convert.FromBase64String(base64String)), out addr);
+            }
+            return _succ;
         }
     }
 }
