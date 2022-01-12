@@ -51,6 +51,8 @@ namespace Neo.Plugins.Notification
             Register("Bid", ExecuteBidNotification);
             Register("Cancel", ExecuteCancelNotification);
             Register("Claim", ExecuteClaimNotification);
+            Register("AddAsset", ExecuteAddAssetNotification);
+            Register("RemoveAsset", ExecuteRemoveAssetNotification);
 
 
         }
