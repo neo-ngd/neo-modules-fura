@@ -451,8 +451,11 @@ namespace Neo.Plugins.VM
                 {
                     if (engine.State.HasFlag(VMState.HALT))
                     {
-                        var owner = new UInt160(engine.ResultStack.Pop().GetSpan().ToArray());
-                        balanceOf = owner == addr ? 1 : 0;
+                        var bts = engine.ResultStack.Pop().GetSpan().ToArray();
+                        var owner_1 = new UInt160(bts);
+                        UInt160 owner_2 = null;
+                        UInt160.TryParse(UTF8Encoding.UTF8.GetString(bts), out owner_2);
+                        balanceOf = owner_1 == addr || owner_2 == addr ? 1 : 0;
                     }
                 }
             }
