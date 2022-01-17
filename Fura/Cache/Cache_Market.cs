@@ -75,7 +75,8 @@ namespace Neo.Plugins.Cache
                         Deadline = (ulong)deadline,
                         Bidder = bidder,
                         BidAmount = bidAmount,
-                        Timestamp = timestamp
+                        Timestamp = timestamp,
+                        NotificationIndex = notificationIndex
                     };
                 }
             }
