@@ -74,11 +74,10 @@ namespace Neo.Plugins.Models
                 .Key(a => a.TokenId, KeyType.Ascending)
                 .Key(a => a.Amount, KeyType.Ascending)
                 .Key(a => a.AuctionType, KeyType.Ascending)
-                .Key(a => a.Market, KeyType.Ascending)
                 .Key(a => a.Asset, KeyType.Ascending)
                 .Key(a => a.Market, KeyType.Ascending)
                 .Key(a => a.Deadline, KeyType.Ascending)
-                .Option(o => { o.Name = "_tokenid_amount_auctionType_market_asset_market_deadline_"; }).CreateAsync();
+                .Option(o => { o.Name = "_tokenid_amount_auctionType_asset_market_deadline_"; }).CreateAsync();
 
             await DB.Index<MarketModel>()
                 .Key(a => a.Asset, KeyType.Ascending)
