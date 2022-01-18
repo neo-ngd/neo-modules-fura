@@ -63,11 +63,88 @@ namespace Neo.Plugins.Models
         public async static Task InitCollectionAndIndex()
         {
             await DB.CreateCollection<MarketNotificationModel>(new CreateCollectionOptions<MarketNotificationModel>());
-            await DB.Index<MarketNotificationModel>().Key(a => a.User, KeyType.Ascending).Option(o => { o.Name = "_user_"; }).CreateAsync();
-            await DB.Index<MarketNotificationModel>().Key(a => a.Timestamp, KeyType.Ascending).Option(o => { o.Name = "_timestamp_"; }).CreateAsync();
-            await DB.Index<MarketNotificationModel>().Key(a => a.EventName, KeyType.Ascending).Option(o => { o.Name = "_eventname_"; }).CreateAsync();
-            await DB.Index<MarketNotificationModel>().Key(a => a.User, KeyType.Ascending).Key(a => a.Timestamp, KeyType.Ascending).Option(o => { o.Name = "_user_timestamp_"; }).CreateAsync();
-            await DB.Index<MarketNotificationModel>().Key(a => a.User, KeyType.Ascending).Key(a => a.EventName, KeyType.Ascending).Key(a => a.Timestamp, KeyType.Ascending).Option(o => { o.Name = "_user_eventname_timestamp_"; }).CreateAsync();
+
+            await DB.Index<MarketNotificationModel>()
+                .Key(a => a.Nonce, KeyType.Ascending)
+                .Key(a => a.Asset, KeyType.Ascending)
+                .Key(a => a.TokenId, KeyType.Ascending)
+                .Key(a => a.EventName, KeyType.Ascending)
+                .Key(a => a.Timestamp, KeyType.Ascending)
+                .Key(a => a.Market, KeyType.Ascending)
+                .Option(o => { o.Name = "_nonce_asset_tokenid_eventname_timestamp_market_"; }).CreateAsync();
+
+            await DB.Index<MarketNotificationModel>()
+                .Key(a => a.Nonce, KeyType.Ascending)
+                .Key(a => a.Asset, KeyType.Ascending)
+                .Key(a => a.EventName, KeyType.Ascending)
+                .Key(a => a.Timestamp, KeyType.Ascending)
+                .Key(a => a.Market, KeyType.Ascending)
+                .Option(o => { o.Name = "_nonce_asset_eventname_timestamp_market_"; }).CreateAsync();
+
+            await DB.Index<MarketNotificationModel>()
+                .Key(a => a.Nonce, KeyType.Ascending)
+                .Key(a => a.Asset, KeyType.Ascending)
+                .Key(a => a.EventName, KeyType.Ascending)
+                .Key(a => a.Timestamp, KeyType.Ascending)
+                .Key(a => a.User, KeyType.Ascending)
+                .Key(a => a.Market, KeyType.Ascending)
+                .Option(o => { o.Name = "_nonce_asset_eventname_timestamp_user_market_"; }).CreateAsync();
+
+            await DB.Index<MarketNotificationModel>()
+                .Key(a => a.Nonce, KeyType.Ascending)
+                .Key(a => a.Asset, KeyType.Ascending)
+                .Key(a => a.User, KeyType.Ascending)
+                .Key(a => a.EventName, KeyType.Ascending)
+                .Key(a => a.Market, KeyType.Ascending)
+                .Option(o => { o.Name = "_nonce_asset_user_eventname_market_"; }).CreateAsync();
+
+            await DB.Index<MarketNotificationModel>()
+                .Key(a => a.Nonce, KeyType.Ascending)
+                .Key(a => a.Asset, KeyType.Ascending)
+                .Key(a => a.User, KeyType.Ascending)
+                .Key(a => a.EventName, KeyType.Ascending)
+                .Key(a => a.TokenId, KeyType.Ascending)
+                .Key(a => a.Market, KeyType.Ascending)
+                .Option(o => { o.Name = "_nonce_asset_user_eventname_tokenid_market_"; }).CreateAsync();
+
+            await DB.Index<MarketNotificationModel>()
+                .Key(a => a.EventName, KeyType.Ascending)
+                .Key(a => a.Market, KeyType.Ascending)
+                .Key(a => a.Asset, KeyType.Ascending)
+                .Option(o => { o.Name = "_eventname_market_asset_"; }).CreateAsync();
+
+            await DB.Index<MarketNotificationModel>()
+                .Key(a => a.Asset, KeyType.Ascending)
+                .Key(a => a.TokenId, KeyType.Ascending)
+                .Key(a => a.Market, KeyType.Ascending)
+                .Key(a => a.EventName, KeyType.Ascending)
+                .Option(o => { o.Name = "_asset_tokenid_market_eventname_"; }).CreateAsync();
+
+            await DB.Index<MarketNotificationModel>()
+                .Key(a => a.Market, KeyType.Ascending)
+                .Key(a => a.Timestamp, KeyType.Ascending)
+                .Option(o => { o.Name = "_market_timestamp_"; }).CreateAsync();
+
+            await DB.Index<MarketNotificationModel>()
+                .Key(a => a.User, KeyType.Ascending)
+                .Key(a => a.Market, KeyType.Ascending)
+                .Key(a => a.Timestamp, KeyType.Ascending)
+                .Option(o => { o.Name = "_user_market_timestamp_"; }).CreateAsync();
+
+            await DB.Index<MarketNotificationModel>()
+                .Key(a => a.EventName, KeyType.Ascending)
+                .Key(a => a.Asset, KeyType.Ascending)
+                .Key(a => a.Timestamp, KeyType.Ascending)
+                .Key(a => a.TokenId, KeyType.Ascending)
+                .Option(o => { o.Name = "_eventname_asset_tokenid_timestamp_"; }).CreateAsync();
+
+            await DB.Index<MarketNotificationModel>()
+                .Key(a => a.EventName, KeyType.Ascending)
+                .Key(a => a.Asset, KeyType.Ascending)
+                .Key(a => a.TokenId, KeyType.Ascending)
+                .Key(a => a.Timestamp, KeyType.Ascending)
+                .Key(a => a.Market, KeyType.Ascending)
+                .Option(o => { o.Name = "_eventname_asset_tokenid_market_timestamp_"; }).CreateAsync();
         }
     }
 }
