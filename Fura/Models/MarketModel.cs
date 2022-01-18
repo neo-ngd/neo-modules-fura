@@ -112,7 +112,6 @@ namespace Neo.Plugins.Models
 
             await DB.Index<MarketModel>()
                 .Key(a => a.AuctionAsset, KeyType.Ascending)
-                .Key(a => a.Amount, KeyType.Ascending)
                 .Key(a => a.AuctionType, KeyType.Ascending)
                 .Key(a => a.Deadline, KeyType.Ascending)
                 .Key(a => a.Asset, KeyType.Ascending)
@@ -120,18 +119,17 @@ namespace Neo.Plugins.Models
                 .Key(a => a.TokenId, KeyType.Ascending)
                 .Key(a => a.Market, KeyType.Ascending)
                 .Key(a => a.Owner, KeyType.Ascending)
-                .Option(o => { o.Name = "_auctionAsset_amount_auctionType_deadline_asset_amount_tokenid_market_owner_"; }).CreateAsync();
+                .Option(o => { o.Name = "_auctionAsset_amount_auctionType_deadline_asset_tokenid_market_owner_"; }).CreateAsync();
 
             await DB.Index<MarketModel>()
                 .Key(a => a.Amount, KeyType.Ascending)
                 .Key(a => a.AuctionType, KeyType.Ascending)
                 .Key(a => a.Deadline, KeyType.Ascending)
                 .Key(a => a.Asset, KeyType.Ascending)
-                .Key(a => a.Amount, KeyType.Ascending)
                 .Key(a => a.TokenId, KeyType.Ascending)
                 .Key(a => a.Market, KeyType.Ascending)
                 .Key(a => a.Owner, KeyType.Ascending)
-                .Option(o => { o.Name = "_amount_auctionType_deadline_asset_amount_tokenid_market_owner_"; }).CreateAsync();
+                .Option(o => { o.Name = "_auctionType_deadline_asset_amount_tokenid_market_owner_"; }).CreateAsync();
 
             await DB.Index<MarketModel>()
                 .Key(a => a.Asset, KeyType.Ascending)
