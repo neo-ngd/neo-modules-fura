@@ -48,7 +48,14 @@ namespace Neo.Plugins.Models
             Exception = exception;
             GasConsumed = gasconsumed;
             Timestamp = timestamp;
-            Stacks = stack.Select(p => p.ToJson().ToString()).ToArray();
+            if(stack.Length < 500)
+            {
+                Stacks = stack.Select(p => p.ToJson().ToString()).ToArray();
+            }
+            else
+            {
+                Stacks = new string[] { };
+            }
         }
 
         public static ExecutionModel Get(UInt256 txid,UInt256 blockHash, string trigger)
