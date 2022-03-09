@@ -48,7 +48,7 @@ namespace Neo.Plugins.Models
             Exception = exception;
             GasConsumed = gasconsumed;
             Timestamp = timestamp;
-            if(stack.Length < 100)
+            if(stack.Length < 500)
             {
                 Stacks = stack.Select(p => p.ToJson().ToString()).ToArray();
             }
