@@ -77,6 +77,7 @@ namespace Neo.Plugins.Notification
                     return;
                 }
                 var key = GetKey(notificationModel.EventName);
+                Console.WriteLine(key);
                 if (dic_filter.ContainsKey(key))
                 {
                     dic_filter[key](notificationModel, system, block, snapshot);
