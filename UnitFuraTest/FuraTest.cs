@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Text.Json;
 using System.IO;
 using Neo.VM;
+using Neo.Cryptography;
 
 namespace UnitFuraTest
 {
@@ -27,6 +28,10 @@ namespace UnitFuraTest
         [TestMethod]
         public void TestScript2Executions()
         {
+
+            var aa = new UInt256((UTF8Encoding.UTF8.GetBytes("Auction")).Sha256());
+            var ba = new UInt256((UTF8Encoding.UTF8.GetBytes("relaunch")).Sha256());
+
             UInt160 asset = UInt160.Parse("0xd74d35311c2a20ba78cd12056d3017da5bd352a6");
             string TokenId = "1LDil6dnxse4WiGC+2nk/gi0mnazuu0aMGI9hYsilHs=";
             byte[] script;
