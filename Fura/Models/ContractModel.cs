@@ -53,7 +53,7 @@ namespace Neo.Plugins.Models
 
         public static ContractModel Get(UInt160 hash)
         {
-            ContractModel contractModel = DB.Find<ContractModel>().Match(c => c.Hash == hash).ExecuteFirstAsync().Result;
+            ContractModel contractModel = DB.Find<ContractModel>().Match(c => c.Hash == hash).Sort(c => c.CreateTime, Order.Descending).ExecuteFirstAsync().Result;
             return contractModel;
         }
 
@@ -61,7 +61,8 @@ namespace Neo.Plugins.Models
         {
             await DB.CreateCollection<ContractModel>(new CreateCollectionOptions<ContractModel>());
             await DB.Index<ContractModel>().Key(a => a.Hash, KeyType.Ascending).Option(o => { o.Name = "_hash_"; }).CreateAsync();
-            await DB.Index<ContractModel>().Key(a => a.Hash, KeyType.Ascending).Key(a => a.UpdateCounter, KeyType.Ascending).Option(o => { o.Name = "_hash_updatecounter_unique_"; o.Unique = true; }).CreateAsync();
+            await DB.Index<ContractModel>().Key(a => a.CreateTime, KeyType.Descending).Option(o => { o.Name = "_createtime_"; }).CreateAsync();
+            await DB.Index<ContractModel>().Key(a => a.Hash, KeyType.Ascending).Key(a => a.UpdateCounter, KeyType.Ascending).Key(a => a.CreateTxid, KeyType.Ascending).Option(o => { o.Name = "_hash_updatecounter_createtxid_unique_"; o.Unique = true; }).CreateAsync();
         }
     }
 }
