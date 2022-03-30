@@ -288,7 +288,6 @@ namespace Neo.Plugins.VM
                     properties = engine.ResultStack.Pop().ToJson().ToString();
                 }
             }
-
             if (!string.IsNullOrEmpty(properties))
             {
                 try

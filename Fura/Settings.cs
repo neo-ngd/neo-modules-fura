@@ -25,6 +25,8 @@ namespace Neo.Plugins
 
         public IReadOnlyList<int> MarketContractIds { get; }
 
+        public string NNS { get; }
+
         private Settings(IConfigurationSection section)
         {
             this.DbName = section.GetValue("DbName", "neo");
@@ -41,6 +43,8 @@ namespace Neo.Plugins
             this.MarketContractIds = section.GetSection("MarketContractId").Exists()
                 ? section.GetSection("MarketContractId").GetChildren().Select(p => int.Parse(p.Value)).ToArray()
                 : new[] { 0 };
+            this.NNS = section.GetValue("NNS", "");
+
         }
 
         public static void Load(IConfigurationSection section)

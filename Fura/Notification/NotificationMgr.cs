@@ -54,7 +54,7 @@ namespace Neo.Plugins.Notification
             Register("AddAsset", ExecuteAddAssetNotification);
             Register("RemoveAsset", ExecuteRemoveAssetNotification);
 
-
+            Register("SetAdmin", ExecuteSetAdminNotification);
         }
 
         public void Register(string eventName, Func<NotificationModel, NeoSystem, Block, DataCache, bool> entity)

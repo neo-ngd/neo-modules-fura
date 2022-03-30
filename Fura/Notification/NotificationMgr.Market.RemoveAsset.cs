@@ -4,9 +4,7 @@ using Neo.Network.P2P.Payloads;
 using Neo.Persistence;
 using Neo.Plugins.Cache;
 using Neo.Plugins.Models;
-using Neo.SmartContract.Native;
-using System.Numerics;
-using Neo.IO.Json;
+
 
 namespace Neo.Plugins.Notification
 {

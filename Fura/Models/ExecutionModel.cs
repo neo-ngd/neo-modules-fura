@@ -50,7 +50,10 @@ namespace Neo.Plugins.Models
             Timestamp = timestamp;
             if(stack.Length < 500)
             {
-                Stacks = stack.Select(p => p.ToJson().ToString()).ToArray();
+                Stacks = stack.Select(p =>
+                {
+                    return p.ToJson().ToString();
+                }).ToArray();
             }
             else
             {

@@ -9,6 +9,7 @@
     "SleepTime": 10,
     "WaitTime": 120,
     "ConnectionString": "",
-    "MarketContractId": [0,0]
+    "MarketContractId": [ 0, 0 ],
+    "NNS" : ""
   }
 }
