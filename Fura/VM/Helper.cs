@@ -149,6 +149,8 @@ namespace Neo.Plugins.VM
                     return BitConverter.ToInt16(bytes);
                 case OpCode.PUSHINT32:
                     return BitConverter.ToInt32(bytes);
+                case OpCode.PUSHDATA1:
+                    return 0;
                 default:
                     throw new Exception("unhandle opcode:" + opCode.ToString());
 
