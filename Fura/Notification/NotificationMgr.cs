@@ -93,11 +93,11 @@ namespace Neo.Plugins.Notification
             {
                 assetType = EnumAssetType.Unknown;
             }
-            else if (contract.Manifest.SupportedStandards.Contains("NEP-17"))
+            else if (contract.Manifest.SupportedStandards.Contains("NEP-17") || Settings.Default.Nep17ContractIds.Contains(contract.Id))
             {
                 assetType = EnumAssetType.NEP17;
             }
-            else if (contract.Manifest.SupportedStandards.Contains("NEP-11"))
+            else if (contract.Manifest.SupportedStandards.Contains("NEP-11") || Settings.Default.Nep11ContractIds.Contains(contract.Id))
             {
                 assetType = EnumAssetType.NEP11;
             }

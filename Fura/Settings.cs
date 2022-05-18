@@ -25,6 +25,10 @@ namespace Neo.Plugins
 
         public IReadOnlyList<int> MarketContractIds { get; }
 
+        public IReadOnlyList<int> Nep11ContractIds { get; }
+
+        public IReadOnlyList<int> Nep17ContractIds { get; }
+
         public string NNS { get; }
 
         private Settings(IConfigurationSection section)
@@ -42,6 +46,12 @@ namespace Neo.Plugins
             this.WaitTime = section.GetValue("WaitTime", 900);
             this.MarketContractIds = section.GetSection("MarketContractId").Exists()
                 ? section.GetSection("MarketContractId").GetChildren().Select(p => int.Parse(p.Value)).ToArray()
+                : new[] { 0 };
+            this.MarketContractIds = section.GetSection("Nep11ContractIds").Exists()
+                ? section.GetSection("Nep11ContractIds").GetChildren().Select(p => int.Parse(p.Value)).ToArray()
+                : new[] { 0 };
+            this.MarketContractIds = section.GetSection("Nep17ContractIds").Exists()
+                ? section.GetSection("Nep17ContractIds").GetChildren().Select(p => int.Parse(p.Value)).ToArray()
                 : new[] { 0 };
             this.NNS = section.GetValue("NNS", "");
 
