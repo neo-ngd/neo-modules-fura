@@ -47,10 +47,10 @@ namespace Neo.Plugins
             this.MarketContractIds = section.GetSection("MarketContractId").Exists()
                 ? section.GetSection("MarketContractId").GetChildren().Select(p => int.Parse(p.Value)).ToArray()
                 : new[] { 0 };
-            this.MarketContractIds = section.GetSection("Nep11ContractIds").Exists()
+            this.Nep11ContractIds = section.GetSection("Nep11ContractIds").Exists()
                 ? section.GetSection("Nep11ContractIds").GetChildren().Select(p => int.Parse(p.Value)).ToArray()
                 : new[] { 0 };
-            this.MarketContractIds = section.GetSection("Nep17ContractIds").Exists()
+            this.Nep17ContractIds = section.GetSection("Nep17ContractIds").Exists()
                 ? section.GetSection("Nep17ContractIds").GetChildren().Select(p => int.Parse(p.Value)).ToArray()
                 : new[] { 0 };
             this.NNS = section.GetValue("NNS", "");
