@@ -39,7 +39,7 @@ namespace Neo.Plugins.VM
         public static List<ScCallModel> Script2ScCallModels(byte[] script, UInt256 txid, UInt160 sender, string vmstate)
         {
             List<ScCallModel> scCalls = new List<ScCallModel>();
-            List<Instruction> instructions = Script2Instruction(txid, script).ToArray().Reverse().ToList(); ;
+            List<Instruction> instructions = Script2Instruction(txid, script).ToArray().Reverse().ToList();
             for (var index = 0; index < instructions.Count; index++)
             {
                 var instruction = instructions[index];
