@@ -32,7 +32,8 @@ namespace Neo.Plugins
 
         public override void Dispose()
         {
-            base.Dispose();
+            Blockchain.Committing -= OnCommitting;
+            Blockchain.Committed -= OnCommitted;
         }
 
         protected override void Configure()
