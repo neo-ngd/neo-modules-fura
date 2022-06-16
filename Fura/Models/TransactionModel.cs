@@ -74,7 +74,7 @@ namespace Neo.Plugins.Models
             ValidUntilBlock = transaction.ValidUntilBlock;
             Signers = SignerModel.ToModels(transaction.Signers);
             Attributes = TransactionAttributeModel.ToModels(transaction.Attributes);
-            Script = transaction.Script;
+            Script = transaction.Script.ToArray();
             Witnesses = WitnessModel.ToModels(transaction.Witnesses);
             BlockHash = blockHash;
             BlockTime = blockTime;
