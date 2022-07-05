@@ -20,6 +20,7 @@ namespace Neo.Plugins.Notification
                 //(nonce, 用户 ,求购使用的nep17资产，nep17数额，求购的nft的hash，求购的nfttokenid，求购截止日期)
                 BigInteger nonce = 0;
                 UInt160 user = null;
+                UInt160 originOwner = null;
                 UInt160 offerAsset = null;
                 BigInteger offerAmount = 0;
                 UInt160 asset = null;
@@ -55,9 +56,14 @@ namespace Neo.Plugins.Notification
                 }
                 //endtimestamp
                 succ = succ && BigInteger.TryParse(notificationModel.State.Values[6].Value, out endTimestamp);
-
+                //originOwner
+                if (notificationModel.State.Values[7].Value is not null)
+                {
+                    succ = succ && UInt160.TryParse(Convert.FromBase64String(notificationModel.State.Values[7].Value).Reverse().ToArray().ToHexString(), out originOwner);
+                }
 
                 JObject json = new JObject();
+                json["originOwner"] = originOwner?.ToString();
                 json["offerAsset"] = offerAsset?.ToString();
                 json["offerAmount"] = offerAmount.ToString();
                 json["deadline"] = endTimestamp.ToString();

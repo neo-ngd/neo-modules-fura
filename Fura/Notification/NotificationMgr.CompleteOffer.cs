@@ -64,7 +64,7 @@ namespace Neo.Plugins.Notification
 
 
                 JObject json = new JObject();
-                json["sender"] = offerAsset?.ToString();
+                json["sender"] = sender?.ToString();
                 json["offerAsset"] = offerAsset?.ToString();
                 json["offerAmount"] = offerAmount.ToString();
                 json["deadline"] = endTimestamp.ToString();

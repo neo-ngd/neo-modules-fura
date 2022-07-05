@@ -238,7 +238,15 @@ namespace Neo.Plugins.VM
                 t.Item2 = (byte)engine.ResultStack.Pop().GetInteger();
                 t.Item1 = engine.ResultStack.Pop().GetString();
             }
-            t.Item3 = GetAssetTotalSupply(system, snapshot, asset);
+            try
+            {
+                t.Item3 = GetAssetTotalSupply(system, snapshot, asset);
+
+            }
+            catch(Exception e)
+            {
+                t.Item3 = 0;
+            }
             return t;
         }
 

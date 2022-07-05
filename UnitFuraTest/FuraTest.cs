@@ -28,7 +28,6 @@ namespace UnitFuraTest
         [TestMethod]
         public void TestScript2Executions()
         {
-
             var aa = new UInt256((UTF8Encoding.UTF8.GetBytes("Auction")).Sha256());
             var ba = new UInt256((UTF8Encoding.UTF8.GetBytes("relaunch")).Sha256());
 
