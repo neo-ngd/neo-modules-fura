@@ -19,7 +19,7 @@ namespace Neo.Plugins.Notification
             {
                 //(nonce, 用户 ,求购使用的nep17资产，nep17数额，求购的nft的hash，求购的nfttokenid，求购截止日期)
                 BigInteger nonce = 0;
-                UInt160 sender = null;
+                UInt160 offerer = null;
                 UInt160 user = null;
                 UInt160 offerAsset = null;
                 BigInteger offerAmount = 0;
@@ -28,15 +28,15 @@ namespace Neo.Plugins.Notification
                 BigInteger endTimestamp = 0;
                 bool succ = true;
                 succ = succ && BigInteger.TryParse(notificationModel.State.Values[0].Value, out nonce);
-                //sender
+                //user
                 if (notificationModel.State.Values[1].Value is not null)
                 {
-                    succ = succ && UInt160.TryParse(Convert.FromBase64String(notificationModel.State.Values[1].Value).Reverse().ToArray().ToHexString(), out sender);
+                    succ = succ && UInt160.TryParse(Convert.FromBase64String(notificationModel.State.Values[1].Value).Reverse().ToArray().ToHexString(), out user);
                 }
-                //user
+                //offerer
                 if (notificationModel.State.Values[2].Value is not null)
                 {
-                    succ = succ && UInt160.TryParse(Convert.FromBase64String(notificationModel.State.Values[2].Value).Reverse().ToArray().ToHexString(), out user);
+                    succ = succ && UInt160.TryParse(Convert.FromBase64String(notificationModel.State.Values[2].Value).Reverse().ToArray().ToHexString(), out offerer);
                 }
                 //offerAsset
                 if (notificationModel.State.Values[3].Value is not null)
@@ -64,7 +64,7 @@ namespace Neo.Plugins.Notification
 
 
                 JObject json = new JObject();
-                json["sender"] = sender?.ToString();
+                json["offerer"] = offerer?.ToString();
                 json["offerAsset"] = offerAsset?.ToString();
                 json["offerAmount"] = offerAmount.ToString();
                 json["deadline"] = endTimestamp.ToString();
