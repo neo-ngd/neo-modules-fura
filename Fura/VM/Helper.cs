@@ -39,7 +39,7 @@ namespace Neo.Plugins.VM
         public static List<ScCallModel> Script2ScCallModels(byte[] script, UInt256 txid, UInt160 sender, string vmstate)
         {
             List<ScCallModel> scCalls = new List<ScCallModel>();
-            List<Instruction> instructions = Script2Instruction(script).ToArray().Reverse().ToList(); ;
+            List<Instruction> instructions = Script2Instruction(txid, script).ToArray().Reverse().ToList();
             for (var index = 0; index < instructions.Count; index++)
             {
                 var instruction = instructions[index];
@@ -72,16 +72,25 @@ namespace Neo.Plugins.VM
             return scCalls;
         }
 
-        public static List<Instruction> Script2Instruction(byte[] script)
+        public static List<Instruction> Script2Instruction(UInt256 txid, byte[] script)
         {
-            List<Instruction> instructions = new List<Instruction>();
-            Script s = new Script(script,true);
-            for (int ip = 0; ip < s.Length; ip += s.GetInstruction(ip).Size)
+            try
             {
-                var instruction = s.GetInstruction(ip);
-                instructions.Add(instruction);
+                List<Instruction> instructions = new List<Instruction>();
+                Script s = new Script(script, true);
+                for (int ip = 0; ip < s.Length; ip += s.GetInstruction(ip).Size)
+                {
+                    var instruction = s.GetInstruction(ip);
+                    instructions.Add(instruction);
+                }
+                return instructions;
             }
-            return instructions;
+            catch
+            {
+                DebugModel debugModel = new(string.Format("Script2Instruction----txid: {0}", txid));
+                debugModel.SaveAsync().Wait();
+            }
+            return new List<Instruction>();
         }
 
         public static CallFlags Opcode2CallFlags(OpCode opCode)
@@ -155,7 +164,7 @@ namespace Neo.Plugins.VM
                 script = sb.ToArray();
             }
 
-            using (ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, settings: system.Settings))
+            using (ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, settings: system.Settings, gas: 50000000))
             {
                 if (engine.State.HasFlag(VMState.FAULT))
                 {
@@ -219,7 +228,7 @@ namespace Neo.Plugins.VM
                 script = sb.ToArray();
             }
             (string, byte, BigInteger) t = new("", 0, 0);
-            using (ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, settings: system.Settings))
+            using (ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, settings: system.Settings, gas: 50000000))
             {
                 if (engine.State.HasFlag(VMState.FAULT))
                 {
@@ -229,7 +238,15 @@ namespace Neo.Plugins.VM
                 t.Item2 = (byte)engine.ResultStack.Pop().GetInteger();
                 t.Item1 = engine.ResultStack.Pop().GetString();
             }
-            t.Item3 = GetAssetTotalSupply(system, snapshot, asset);
+            try
+            {
+                t.Item3 = GetAssetTotalSupply(system, snapshot, asset);
+
+            }
+            catch(Exception e)
+            {
+                t.Item3 = 0;
+            }
             return t;
         }
 
@@ -242,7 +259,7 @@ namespace Neo.Plugins.VM
                 script = sb.ToArray();
             }
             BigInteger totalSupply = 0;
-            using (ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, settings: system.Settings))
+            using (ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, settings: system.Settings, gas: 50000000))
             {
                 if (engine.State.HasFlag(VMState.FAULT))
                 {
@@ -272,14 +289,13 @@ namespace Neo.Plugins.VM
                 script = sb.ToArray();
             }
             var properties = "";
-            using (ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, settings: system.Settings))
+            using (ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, settings: system.Settings, gas: 50000000))
             {
                 if (engine.State.HasFlag(VMState.HALT))
                 {
                     properties = engine.ResultStack.Pop().ToJson().ToString();
                 }
             }
-
             if (!string.IsNullOrEmpty(properties))
             {
                 try
@@ -414,7 +430,7 @@ namespace Neo.Plugins.VM
                 script = sb.ToArray();
             }
 
-            using (ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, settings: system.Settings))
+            using (ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, settings: system.Settings, gas: 50000000))
             {
                 if (engine.State.HasFlag(VMState.HALT))
                 {
@@ -438,12 +454,15 @@ namespace Neo.Plugins.VM
                     }
                     script = sb.ToArray();
                 }
-                using (ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, settings: system.Settings))
+                using (ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, settings: system.Settings, gas: 50000000))
                 {
                     if (engine.State.HasFlag(VMState.HALT))
                     {
-                        var owner = new UInt160(engine.ResultStack.Pop().GetSpan().ToArray());
-                        balanceOf = owner == addr ? 1 : 0;
+                        var bts = engine.ResultStack.Pop().GetSpan().ToArray();
+                        var owner_1 = new UInt160(bts);
+                        UInt160 owner_2 = null;
+                        UInt160.TryParse(UTF8Encoding.UTF8.GetString(bts), out owner_2);
+                        balanceOf = owner_1 == addr || owner_2 == addr ? 1 : 0;
                     }
                 }
             }
@@ -462,7 +481,7 @@ namespace Neo.Plugins.VM
                     }
                     script = sb.ToArray();
                 }
-                using (ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, settings: system.Settings))
+                using (ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, settings: system.Settings, gas: 50000000))
                 {
                     if (engine.State.HasFlag(VMState.HALT))
                     {
@@ -487,7 +506,7 @@ namespace Neo.Plugins.VM
             }
 
             BigInteger[] balanceOfs = new BigInteger[addrs.Length];
-            using (ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, settings: system.Settings))
+            using (ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, settings: system.Settings, gas: 50000000 * addrs.Length))
             {
                 if (engine.State.HasFlag(VMState.HALT))
                 {

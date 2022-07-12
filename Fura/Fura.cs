@@ -13,14 +13,28 @@ using Neo.Plugins.Cache;
 using System.Threading.Tasks;
 using System.IO;
 using System.Reflection;
+using Neo.Plugins.Notification;
 
 namespace Neo.Plugins
 {
-    public class Fura : Plugin, IPersistencePlugin
+    public class Fura : Plugin
     {
         public override string Name => "Fura";
 
         public override string Description => "Analyze the data and store it in MongoDB";
+
+        public Fura()
+        {
+            Blockchain.Committing += OnCommitting;
+            Blockchain.Committed += OnCommitted;
+        }
+
+
+        public override void Dispose()
+        {
+            Blockchain.Committing -= OnCommitting;
+            Blockchain.Committed -= OnCommitted;
+        }
 
         protected override void Configure()
         {
@@ -42,7 +56,7 @@ namespace Neo.Plugins
             MongoClient.InitBasicData(system).Wait();
         }
 
-        void IPersistencePlugin.OnPersist(NeoSystem system, Block block, DataCache snapshot, IReadOnlyList<Blockchain.ApplicationExecuted> applicationExecutedList)
+        void OnCommitting(NeoSystem system, Block block, DataCache snapshot, IReadOnlyList<Blockchain.ApplicationExecuted> applicationExecutedList)
         {
             bool loop = true;
             uint errLoopTimes = 0;
@@ -109,7 +123,7 @@ namespace Neo.Plugins
             }
         }
 
-        void IPersistencePlugin.OnCommit(NeoSystem system, Block block, DataCache snapshot)
+        void OnCommitted(NeoSystem system, Block block)
         {
             bool loop = true;
             uint errLoopTimes = 0;
@@ -128,7 +142,7 @@ namespace Neo.Plugins
                         {
                             try
                             {
-                                ExecBlock(transaction, system, block, snapshot);
+                                ExecBlock(transaction, system, block);
                                 var time1 = (DateTime.Now.ToUniversalTime().Ticks - 621355968000000000) / 10000;
                                 Loger.Common(string.Format("OnCommit------ {0} 高度的数据录入耗时 {1} ms", block.Index, time1 - time0));
                                 loop = false;
@@ -247,9 +261,17 @@ namespace Neo.Plugins
                 executionModel = new ExecutionModel(applicationExecuted.Transaction.Hash, block.Hash, block.Timestamp, applicationExecuted.Trigger.ToString(), applicationExecuted.VMState.ToString(), applicationExecuted.Exception?.ToString(), applicationExecuted.GasConsumed, applicationExecuted.Stack); ;
                 if(executionModel.VmState == "HALT")
                 {
-                    //通过解析script得到调用了哪些合约哪些方法，从而处理一些特殊数据
-                    list_ScCall = VM.Helper.Script2ScCallModels(applicationExecuted.Transaction.Script, applicationExecuted.Transaction.Hash, applicationExecuted.Transaction.Sender, applicationExecuted.VMState.ToString());
-                }
+                    try
+                    {
+                        //通过解析script得到调用了哪些合约哪些方法，从而处理一些特殊数据
+                        list_ScCall = VM.Helper.Script2ScCallModels(applicationExecuted.Transaction.Script.ToArray(), applicationExecuted.Transaction.Hash, applicationExecuted.Transaction.Sender, applicationExecuted.VMState.ToString());
+                    }
+                    catch(Exception e)
+                    {
+                        DebugModel debugModel = new(e.Message);
+                        debugModel.SaveAsync().Wait();
+                    }
+}
             }
             else
             {
@@ -270,14 +292,14 @@ namespace Neo.Plugins
                 var notificationModel = new NotificationModel(executionModel.Txid, i, executionModel.BlockHash, executionModel.Timestamp, n.ScriptHash, n.EventName, executionModel.VmState, n.State);
                 notificationModels.Add(notificationModel);
             }
-            if (notificationModels.Count > 0)
+            if (notificationModels.Count > 0 && notificationModels.Count < 500)
             {
                 DBCache.Ins.cacheNotification.Add(notificationModels);
                 NotificationMgr.Ins.Filter(notificationModels, system, block, snapshot);
             }
         }
 
-        void ExecBlock(MongoDB.Entities.Transaction transaction, NeoSystem system, Block block, DataCache snapshot)
+        void ExecBlock(MongoDB.Entities.Transaction transaction, NeoSystem system, Block block)
         {
             //如果这个高度的block数据能在数据库中查到，证明已经录入过了（防止重启重录）
             BlockModel blockModel = BlockModel.Get(block.Hash);
@@ -318,21 +340,24 @@ namespace Neo.Plugins
                     candidateModel_old = candidateModel_old.Select(c => { c.IsCommittee = false; return c; }).ToList();
                     transaction.SaveAsync(candidateModel_old).Wait();
                 }
-                //更新新的一批次
-                ECPoint[] committees = Neo.SmartContract.Native.NeoToken.NEO.GetCommittee(snapshot);
-                CandidateModel[] candidateModels_new = committees.Select(c =>
+                using(var snapshot = system.GetSnapshot())
                 {
-                    var hash = Contract.CreateSignatureContract(c).ScriptHash;
-                    var candidateModel = CandidateModel.Get(hash);
-                    if (candidateModel is null)
+                    //更新新的一批次
+                    ECPoint[] committees = Neo.SmartContract.Native.NeoToken.NEO.GetCommittee(snapshot);
+                    CandidateModel[] candidateModels_new = committees.Select(c =>
                     {
-                        var votes = Neo.Plugins.VM.Helper.GetCandidateVotes(c, system, snapshot);
-                        candidateModel = new CandidateModel(hash, false, votes.ToString(), true);
-                    }
-                    candidateModel.IsCommittee = true;
-                    return candidateModel;
-                }).ToArray();
-                transaction.SaveAsync(candidateModels_new).Wait();
+                        var hash = Contract.CreateSignatureContract(c).ScriptHash;
+                        var candidateModel = CandidateModel.Get(hash);
+                        if (candidateModel is null)
+                        {
+                            var votes = Neo.Plugins.VM.Helper.GetCandidateVotes(c, system, snapshot);
+                            candidateModel = new CandidateModel(hash, false, votes.ToString(), true);
+                        }
+                        candidateModel.IsCommittee = true;
+                        return candidateModel;
+                    }).ToArray();
+                    transaction.SaveAsync(candidateModels_new).Wait();
+                }
             }
 
             //将此块的record标记为完成

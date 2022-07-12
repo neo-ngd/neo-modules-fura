@@ -13,14 +13,26 @@ namespace Neo.Plugins.Models
         [BsonElement("burnAmount")]
         public BsonDecimal128 BurnAmount { get; set; }
 
+        [BsonElement("totalBurnAmount")]
+        public BsonDecimal128 TotalBurnAmount { get; set; }
+
         [BsonElement("mintAmount")]
         public BsonDecimal128 MintAmount { get; set; }
+
+        [BsonElement("totalMintAmount")]
+        public BsonDecimal128 TotalMintAmount { get; set; }
 
         [BsonElement("blockIndex")]
         public uint BlockIndex { get; set; }
 
         public GasMintBurnModel()
         {
+        }
+
+        public static GasMintBurnModel Get(uint BlockIndex)
+        {
+            GasMintBurnModel gasMintBurnModel = DB.Find<GasMintBurnModel>().Match(g => g.BlockIndex == BlockIndex).ExecuteFirstAsync().Result;
+            return gasMintBurnModel;
         }
 
         public async static Task InitCollectionAndIndex()
