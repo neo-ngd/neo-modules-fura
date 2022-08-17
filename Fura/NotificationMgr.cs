@@ -160,7 +160,7 @@ namespace Neo.Plugins
             DBCache.Ins.cacheAddress.AddNeedUpdate(from, block.Timestamp);
             DBCache.Ins.cacheAddress.AddNeedUpdate(to, block.Timestamp);
 
-            if (from == UInt160.Zero || from is null) //如果from为0x0，意味着发行代币，这个时候需要更新资产的总量
+            if (from == UInt160.Zero || from is null || to == UInt160.Zero || to is null) //如果from为0x0，意味着发行代币，如果to为0x0，意味着销毁代币，这个时候需要更新资产的总量
             {
                 DBCache.Ins.cacheAsset.AddNeedUpdate(notificationModel.ContractHash, block.Timestamp, EnumAssetType.NEP17);
             }
@@ -214,7 +214,7 @@ namespace Neo.Plugins
 
             DBCache.Ins.cacheAddress.Add(block.Timestamp, from, to);
             DBCache.Ins.cacheNep11Properties.AddNeedUpdate(notificationModel.ContractHash, tokenId);
-            if (from == UInt160.Zero || from is null) //如果from为0x0，意味着发行代币，这个时候需要更新资产的总量
+            if (from == UInt160.Zero || from is null || to == UInt160.Zero || to is null) //如果from为0x0，意味着发行代币，如果to为0x0，意味着销毁代币，这个时候需要更新资产的总量
             {
                 DBCache.Ins.cacheAsset.AddNeedUpdate(notificationModel.ContractHash, block.Timestamp, EnumAssetType.NEP11);
             }
