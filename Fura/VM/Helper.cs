@@ -434,7 +434,11 @@ namespace Neo.Plugins.VM
             {
                 if (engine.State.HasFlag(VMState.HALT))
                 {
-                    decimals = engine.ResultStack.Pop().GetInteger();
+                    var stackitem = engine.ResultStack.Pop();
+                    if (!stackitem.IsNull)
+                    {
+                        decimals = stackitem.GetInteger();
+                    }
                 }
             }
             //如果精度是0，那么tokenid一定只有一个地址拥有。查询ownerOf看是不是属于addr，是就返回1，不是就返回0
@@ -489,7 +493,11 @@ namespace Neo.Plugins.VM
                 {
                     if (engine.State.HasFlag(VMState.HALT))
                     {
-                        balanceOf = engine.ResultStack.Pop().GetInteger();
+                        var stackitem = engine.ResultStack.Pop();
+                        if(!stackitem.IsNull)
+                        {
+                            balanceOf = stackitem.GetInteger();
+                        }
                     }
                 }
             }

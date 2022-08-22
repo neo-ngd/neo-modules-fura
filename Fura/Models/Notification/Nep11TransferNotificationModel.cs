@@ -56,9 +56,9 @@ namespace Neo.Plugins.Models
             TokenId = tokenId;
             From = from;
             To = to;
-            Value = BsonDecimal128.Create(value.ToString());
-            FromBalanceOf = BsonDecimal128.Create(fromBalanceOf.ToString());
-            ToBalanceOf = BsonDecimal128.Create(toBalanceOf.ToString());
+            Value = BsonDecimal128.Create(value.ToString().WipeNumStrToFitDecimal128());
+            FromBalanceOf = BsonDecimal128.Create(fromBalanceOf.ToString().WipeNumStrToFitDecimal128());
+            ToBalanceOf = BsonDecimal128.Create(toBalanceOf.ToString().WipeNumStrToFitDecimal128());
             Timestamp = timestamp;
         }
 

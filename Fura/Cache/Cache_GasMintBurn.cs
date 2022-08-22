@@ -42,10 +42,10 @@ namespace Neo.Plugins.Cache
             }
             GasMintBurnModel gasMintBurnModel = new GasMintBurnModel()
             {
-                BurnAmount = BsonDecimal128.Create(GasMintBurnParams.BurnAmount.ToString()),
-                TotalBurnAmount = BsonDecimal128.Create((totalBurnAmount + GasMintBurnParams.BurnAmount).ToString()),
-                MintAmount = BsonDecimal128.Create(GasMintBurnParams.MintAmount.ToString()),
-                TotalMintAmount = BsonDecimal128.Create((totalMintAmount + GasMintBurnParams.MintAmount).ToString()),
+                BurnAmount = BsonDecimal128.Create(GasMintBurnParams.BurnAmount.ToString().WipeNumStrToFitDecimal128()),
+                TotalBurnAmount = BsonDecimal128.Create((totalBurnAmount + GasMintBurnParams.BurnAmount).ToString().WipeNumStrToFitDecimal128()),
+                MintAmount = BsonDecimal128.Create(GasMintBurnParams.MintAmount.ToString().WipeNumStrToFitDecimal128()),
+                TotalMintAmount = BsonDecimal128.Create((totalMintAmount + GasMintBurnParams.MintAmount).ToString().WipeNumStrToFitDecimal128()),
                 BlockIndex = GasMintBurnParams.BlockIndex
             };
             tran.SaveAsync(gasMintBurnModel).Wait();

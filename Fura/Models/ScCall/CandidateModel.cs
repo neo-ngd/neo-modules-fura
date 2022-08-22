@@ -30,7 +30,7 @@ namespace Neo.Plugins.Models
         {
             Candidate = candidate;
             State = state;
-            VotesOfCandidate = BsonDecimal128.Create(votesOfCandidate);
+            VotesOfCandidate = BsonDecimal128.Create(votesOfCandidate.WipeNumStrToFitDecimal128());
             IsCommittee = isCommittee;
         }
 

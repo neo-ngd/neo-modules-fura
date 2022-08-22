@@ -85,7 +85,7 @@ namespace Neo.Plugins.Cache
                 assetModel.TokenName = tokenName;
                 assetModel.Decimals = decimals;
                 assetModel.Symbol = symbol;
-                assetModel.TotalSupply = BsonDecimal128.Create(totalSupply.ToString());
+                assetModel.TotalSupply = BsonDecimal128.Create(totalSupply.ToString().WipeNumStrToFitDecimal128());
             }
             D_AssetModel[contractHash] = assetModel;
         }

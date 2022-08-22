@@ -86,7 +86,7 @@ namespace Neo.Plugins.Cache
             }
             else
             {
-                addressAssetModel.Balance = BsonDecimal128.Create(balance.ToString());
+                addressAssetModel.Balance = BsonDecimal128.Create(balance.ToString().WipeNumStrToFitDecimal128());
             }
             D_AddressAssetModel[(address, asset, tokenid)] = addressAssetModel;
         }

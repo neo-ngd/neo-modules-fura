@@ -121,13 +121,13 @@ namespace Neo.Plugins.Cache
                     Asset = cacheMarketParams.Asset,
                     TokenId = cacheMarketParams.TokenId,
                     Owner = cacheMarketParams.Owner,
-                    Amount = MongoDB.Bson.BsonDecimal128.Create(cacheMarketParams.Amount.ToString()),
+                    Amount = MongoDB.Bson.BsonDecimal128.Create(cacheMarketParams.Amount.ToString().WipeNumStrToFitDecimal128()),
                     Market = cacheMarketParams.Market,
                     AuctionType = cacheMarketParams.AuctionType,
-                    AuctionAmount = MongoDB.Bson.BsonDecimal128.Create(cacheMarketParams.AuctionAmount.ToString()),
+                    AuctionAmount = MongoDB.Bson.BsonDecimal128.Create(cacheMarketParams.AuctionAmount.ToString().WipeNumStrToFitDecimal128()),
                     AuctionAsset = cacheMarketParams.AuctionAsset,
                     Auctor = cacheMarketParams.Auctor,
-                    BidAmount = MongoDB.Bson.BsonDecimal128.Create(cacheMarketParams.BidAmount.ToString()),
+                    BidAmount = MongoDB.Bson.BsonDecimal128.Create(cacheMarketParams.BidAmount.ToString().WipeNumStrToFitDecimal128()),
                     Bidder = cacheMarketParams.Bidder,
                     Deadline = cacheMarketParams.Deadline,
                     Timestamp = (ulong)cacheMarketParams.Timestamp
@@ -136,20 +136,20 @@ namespace Neo.Plugins.Cache
             else if(cacheMarketParams.SimpleUpdate)
             {
                 marketModel.Timestamp = (ulong)cacheMarketParams.Timestamp;
-                marketModel.Amount = MongoDB.Bson.BsonDecimal128.Create(cacheMarketParams.Amount.ToString());
+                marketModel.Amount = MongoDB.Bson.BsonDecimal128.Create(cacheMarketParams.Amount.ToString().WipeNumStrToFitDecimal128());
             }
             else
             {
                 marketModel.Asset = cacheMarketParams.Asset;
                 marketModel.TokenId = cacheMarketParams.TokenId;
                 marketModel.Owner = cacheMarketParams.Owner;
-                marketModel.Amount = MongoDB.Bson.BsonDecimal128.Create(cacheMarketParams.Amount.ToString());
+                marketModel.Amount = MongoDB.Bson.BsonDecimal128.Create(cacheMarketParams.Amount.ToString().WipeNumStrToFitDecimal128());
                 marketModel.Market = cacheMarketParams.Market;
                 marketModel.AuctionType = cacheMarketParams.AuctionType;
-                marketModel.AuctionAmount = MongoDB.Bson.BsonDecimal128.Create(cacheMarketParams.AuctionAmount.ToString());
+                marketModel.AuctionAmount = MongoDB.Bson.BsonDecimal128.Create(cacheMarketParams.AuctionAmount.ToString().WipeNumStrToFitDecimal128());
                 marketModel.AuctionAsset = cacheMarketParams.AuctionAsset;
                 marketModel.Auctor = cacheMarketParams.Auctor;
-                marketModel.BidAmount = MongoDB.Bson.BsonDecimal128.Create(cacheMarketParams.BidAmount.ToString());
+                marketModel.BidAmount = MongoDB.Bson.BsonDecimal128.Create(cacheMarketParams.BidAmount.ToString().WipeNumStrToFitDecimal128());
                 marketModel.Bidder = cacheMarketParams.Bidder;
                 marketModel.Deadline = cacheMarketParams.Deadline;
                 marketModel.Timestamp = (ulong)cacheMarketParams.Timestamp;
