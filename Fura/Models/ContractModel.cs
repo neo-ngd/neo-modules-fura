@@ -3,7 +3,7 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 using MongoDB.Entities;
-using Neo.IO.Json;
+using Neo.Json;
 using Neo.Plugins.Attribute;
 
 namespace Neo.Plugins.Models

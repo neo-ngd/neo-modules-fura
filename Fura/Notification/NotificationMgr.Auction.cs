@@ -6,7 +6,7 @@ using Neo.Plugins.Cache;
 using Neo.Plugins.Models;
 using Neo.SmartContract.Native;
 using System.Numerics;
-using Neo.IO.Json;
+using Neo.Json;
 
 namespace Neo.Plugins.Notification
 {
