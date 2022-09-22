@@ -59,6 +59,7 @@ namespace Neo.Plugins.Notification
 
 
             Register("SetAdmin", ExecuteSetAdminNotification);
+            Register("Renew", ExecuteRenewNotification);
         }
 
         public void Register(string eventName, Func<NotificationModel, NeoSystem, Block, DataCache, bool> entity)
