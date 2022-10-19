@@ -56,6 +56,18 @@ namespace UnitFuraTest
             //var scCalls = Neo.Plugins.VM.Helper.Script2ScCallModels(script, UInt256.Zero, UInt160.Zero, "");
         }
 
+        [TestMethod]
+        public void TestConvert()
+        {
+            //var a = (DateTime.Now.ToUniversalTime().Ticks - 621355968000000000) / 10000;
+            //UInt160 from;
+            //bool succ = UInt160.TryParse(Convert.FromBase64String("krOcd6pg8ptXwXPO2Rfxf9Mhpus=").Reverse().ToArray().ToHexString(), out from);
+            //succ = UInt160.TryParse("d79888e16f9186e873b18a2bc80fd3ecf2ba74b3", out from);
+
+            string properties = "{\"name\":\"CryptoFallen #6-19\",\"description\":\"CryptoFallen #6-19 \\\"Neo3 Series\\\" Follow @1Bigbagheera on twitter for updates!\",\"image\":\"ipfs://QmXZF4Pu1txhKo938X43RqrVJZ98p9QZyKnNGQ3ZR5Q3y3\",\"tokenURI\":\"\",\"attributes\":[{\"type\":\"Author\",\"value\":\"1Bigbagheera\",\"display\":\"\"},{\"type\":\"Date\",\"value\":\"8/25/21\",\"display\":\"\"},{\"type\":\"Series\",\"value\":\"Neo3\",\"display\":\"\"}],\"properties\":{\"has_locked\":false,\"creator\":\"NMV6PXumvk74JHkrrgynh932dQKd2p9vGF\",\"royalties\":1000,\"type\":2}}";
+            Neo.Json.JObject jObject = (Neo.Json.JObject)Neo.Json.JObject.Parse(properties); 
+        }
+
         public static string TryParseByteString(string str)
         {
             try
@@ -132,15 +144,6 @@ namespace UnitFuraTest
                     break;
             }
             return value;
-        }
-
-        [TestMethod]
-        public void TestConvert()
-        {
-            var a = (DateTime.Now.ToUniversalTime().Ticks - 621355968000000000) / 10000;
-            UInt160 from;
-            bool succ = UInt160.TryParse(Convert.FromBase64String("krOcd6pg8ptXwXPO2Rfxf9Mhpus=").Reverse().ToArray().ToHexString(), out from);
-            succ = UInt160.TryParse("d79888e16f9186e873b18a2bc80fd3ecf2ba74b3", out from);
         }
 
         [TestMethod]

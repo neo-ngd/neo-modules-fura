@@ -12,6 +12,8 @@
     "MarketContractId": [ 0, 0 ],
     "Nep11ContractIds": [],
     "Nep17ContractIds": [],
+    "IlexContractIds": [],
+    "MetaContractIds": [],
     "NNS": ""
   }
 }

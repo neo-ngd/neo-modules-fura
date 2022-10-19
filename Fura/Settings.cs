@@ -29,6 +29,10 @@ namespace Neo.Plugins
 
         public IReadOnlyList<int> Nep17ContractIds { get; }
 
+        public IReadOnlyList<string> IlexContractHashes { get; }
+
+        public IReadOnlyList<string> MetaContractHashes { get; }
+
         public string NNS { get; }
 
         private Settings(IConfigurationSection section)
@@ -53,6 +57,12 @@ namespace Neo.Plugins
             this.Nep17ContractIds = section.GetSection("Nep17ContractIds").Exists()
                 ? section.GetSection("Nep17ContractIds").GetChildren().Select(p => int.Parse(p.Value)).ToArray()
                 : new[] { 0 };
+            this.IlexContractHashes = section.GetSection("IlexContractIds").Exists()
+                ? section.GetSection("IlexContractIds").GetChildren().Select(p => p.Value).ToArray()
+                : new string[] { };
+            this.MetaContractHashes = section.GetSection("MetaContractIds").Exists()
+                ? section.GetSection("MetaContractIds").GetChildren().Select(p => p.Value).ToArray()
+                : new string[] { };
             this.NNS = section.GetValue("NNS", "");
 
         }

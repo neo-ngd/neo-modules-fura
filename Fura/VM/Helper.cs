@@ -272,6 +272,32 @@ namespace Neo.Plugins.VM
 
         }
 
+        public static BigInteger IsSelfControl(NeoSystem system, DataCache snapshot, UInt160 asset)
+        {
+            try
+            {
+                byte[] script;
+                using (ScriptBuilder sb = new ScriptBuilder())
+                {
+                    sb.EmitDynamicCall(asset, "selfControl");
+                    script = sb.ToArray();
+                }
+                using (ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, settings: system.Settings, gas: 50000000))
+                {
+                    if (engine.State.HasFlag(VMState.FAULT))
+                    {
+                        Console.WriteLine("Error:GetNep11Info,VMState.FAULT" + asset.ToString()); //后面需要去掉，返回null
+                        return 0;
+                    }
+                    return engine.ResultStack.Pop().GetInteger();
+                }
+            }
+            catch
+            {
+                return 0;
+            }
+        }
+
         public static string GetNep11Properties(NeoSystem system, DataCache snapshot, UInt160 asset, string TokenId)
         {
             byte[] script;
