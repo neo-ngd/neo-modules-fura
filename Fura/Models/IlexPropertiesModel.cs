@@ -34,7 +34,7 @@ namespace Neo.Plugins.Models
         {
             Asset = asset;
             TokenId = tokenid;
-            Properties = Properties;
+            Properties = properties;
             try
             {
                 Json.JObject jObject = (Json.JObject)Json.JObject.Parse(properties);

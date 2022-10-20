@@ -31,7 +31,7 @@ namespace Neo.Plugins.Models
         public string Series { get; set; }
 
         [BsonElement("supply")]
-        public int Supply { get; set; }
+        public string Supply { get; set; }
 
         [BsonElement("thumbnail")]
         public string Thumbnail { get; set; }
@@ -42,14 +42,14 @@ namespace Neo.Plugins.Models
         {
             Asset = asset;
             TokenId = tokenid;
-            Properties = Properties;
+            Properties = properties;
             try
             {
                 Json.JObject jObject = (Json.JObject)Json.JObject.Parse(properties);
                 Name = jObject["name"].GetString();
                 Image = jObject["image"].GetString();
                 Series = jObject["series"].GetString();
-                Supply = jObject["supply"].GetInt32();
+                Supply = jObject["supply"].GetString();
                 Thumbnail = jObject["thumbnail"].GetString();
             }
             catch
