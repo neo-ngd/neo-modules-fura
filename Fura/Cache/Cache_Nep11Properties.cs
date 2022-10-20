@@ -103,7 +103,7 @@ namespace Neo.Plugins.Cache
         public void AddOrUpdate(UInt160 asset, string tokenid, string properties, BigInteger selfControl)
         {
             AddOrUpdateNep11(asset, tokenid, properties);
-            if (Settings.Default.MetaContractHashes.Contains(asset.ToString()) || selfControl == 1)
+            if (Settings.Default.IlexContractHashes.Contains(asset.ToString()) || selfControl == 1)
             {
                 AddOrUpdateIlex(asset, tokenid, properties);
             }
