@@ -22,6 +22,8 @@ namespace Neo.Plugins.Cache
         private ConcurrentDictionary<(UInt160, string), CacheNep11PropertiesParams> D_Nep11Properties;
         private ConcurrentDictionary<(UInt160, string), Nep11PropertiesModel> D_Nep11PropertiesModel;
 
+        private ConcurrentDictionary<(UInt160, string), NNSPropertiesModel> D_NNSPropertiesModel;
+
         private ConcurrentDictionary<(UInt160, string), IlexPropertiesModel> D_IlexPropertiesModel;
 
         private ConcurrentDictionary<(UInt160, string), MetaPropertiesModel> D_MetaPropertiesModel;
@@ -30,6 +32,7 @@ namespace Neo.Plugins.Cache
         {
             D_Nep11Properties = new ConcurrentDictionary<(UInt160, string), CacheNep11PropertiesParams>();
             D_Nep11PropertiesModel = new ConcurrentDictionary<(UInt160, string), Nep11PropertiesModel>();
+            D_NNSPropertiesModel = new ConcurrentDictionary<(UInt160, string), NNSPropertiesModel>();
             D_IlexPropertiesModel = new ConcurrentDictionary<(UInt160, string), IlexPropertiesModel>();
             D_MetaPropertiesModel = new ConcurrentDictionary<(UInt160, string), MetaPropertiesModel>();
         }
@@ -38,6 +41,7 @@ namespace Neo.Plugins.Cache
         {
             D_Nep11Properties = new ConcurrentDictionary<(UInt160, string), CacheNep11PropertiesParams>();
             D_Nep11PropertiesModel = new ConcurrentDictionary<(UInt160, string), Nep11PropertiesModel>();
+            D_NNSPropertiesModel = new ConcurrentDictionary<(UInt160, string), NNSPropertiesModel>();
             D_IlexPropertiesModel = new ConcurrentDictionary<(UInt160, string), IlexPropertiesModel>();
             D_MetaPropertiesModel = new ConcurrentDictionary<(UInt160, string), MetaPropertiesModel>();
         }
@@ -100,6 +104,18 @@ namespace Neo.Plugins.Cache
             }
         }
 
+        public NNSPropertiesModel GetNNS(UInt160 asset, string tokenid)
+        {
+            if (D_NNSPropertiesModel.ContainsKey((asset, tokenid)))
+            {
+                return D_NNSPropertiesModel[(asset, tokenid)];
+            }
+            else
+            {
+                return NNSPropertiesModel.Get(asset, tokenid);
+            }
+        }
+
         public void AddOrUpdate(UInt160 asset, string tokenid, string properties, BigInteger selfControl)
         {
             AddOrUpdateNep11(asset, tokenid, properties);
@@ -110,6 +126,10 @@ namespace Neo.Plugins.Cache
             if (Settings.Default.MetaContractHashes.Contains(asset.ToString()) || selfControl == 2)
             {
                 AddOrUpdateMeta(asset, tokenid, properties);
+            }
+            if (Settings.Default.NNS == asset.ToString())
+            {
+                AddOrUpdateNNS(asset, tokenid, properties);
             }
         }
 
@@ -153,7 +173,20 @@ namespace Neo.Plugins.Cache
                 metaPropertiesModel.UpdateProperties(properties);
             }
             D_MetaPropertiesModel[(asset, tokenid)] = metaPropertiesModel;
+        }
 
+        private void AddOrUpdateNNS(UInt160 asset, string tokenid, string properties)
+        {
+            NNSPropertiesModel nnsPropertiesModel = GetNNS(asset, tokenid);
+            if (nnsPropertiesModel is null)
+            {
+                nnsPropertiesModel = new(asset, tokenid, properties);
+            }
+            else
+            {
+                nnsPropertiesModel.Properties = properties;
+            }
+            D_NNSPropertiesModel[(asset, tokenid)] = nnsPropertiesModel;
         }
 
         public void Save(Transaction tran)
@@ -164,6 +197,8 @@ namespace Neo.Plugins.Cache
                 tran.SaveAsync(D_IlexPropertiesModel.Values).Wait();
             if (D_MetaPropertiesModel.Values.Count > 0)
                 tran.SaveAsync(D_MetaPropertiesModel.Values).Wait();
+            if (D_NNSPropertiesModel.Values.Count > 0)
+                tran.SaveAsync(D_NNSPropertiesModel.Values).Wait();
         }
     }
 }
