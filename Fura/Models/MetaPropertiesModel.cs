@@ -67,7 +67,7 @@ namespace Neo.Plugins.Models
                 Name = jObject["name"].GetString();
                 Image = jObject["image"].GetString();
                 Series = jObject["series"].GetString();
-                Supply = jObject["supply"].GetInt32();
+                Supply = jObject["supply"].GetString();
                 Thumbnail = jObject["thumbnail"].GetString();
             }
             catch
