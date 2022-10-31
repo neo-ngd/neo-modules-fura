@@ -56,6 +56,10 @@ namespace Neo.Plugins.Notification
             Register("Offer", ExecuteOfferNotification);
             Register("CancelOffer", ExecuteCancelOfferNotification);
             Register("CompleteOffer", ExecuteCompleteOfferNotification);
+            Register("OfferCollection", ExecuteOfferCollectionNotification);
+            Register("CancelOfferCollection", ExecuteCancelOfferCollectionNotification);
+            Register("CompleteOfferCollection", ExecuteCompleteOfferCollectionNotification);
+
 
 
             Register("SetAdmin", ExecuteSetAdminNotification);
