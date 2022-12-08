@@ -9,11 +9,11 @@
     "SleepTime": 10,
     "WaitTime": 120,
     "ConnectionString": "",
-    "MarketContractId": [ 0, 0 ],
+    "MarketContractIds": [ 0, 0 ],
     "Nep11ContractIds": [],
     "Nep17ContractIds": [],
-    "IlexContractIds": [],
-    "MetaContractIds": [],
+    "IlexContractHashes": [],
+    "MetaContractHashes": [],
     "NNS": ""
   }
 }

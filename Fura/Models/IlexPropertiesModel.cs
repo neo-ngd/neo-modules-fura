@@ -67,9 +67,5 @@ namespace Neo.Plugins.Models
             IlexPropertiesModel model = DB.Find<IlexPropertiesModel>().Match(a => a.Asset == asset && a.TokenId == tokenid).ExecuteFirstAsync().Result;
             return model;
         }
-
-        public async static Task InitCollectionAndIndex()
-        {
-        }
     }
 }

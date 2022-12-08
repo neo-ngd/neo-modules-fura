@@ -48,8 +48,8 @@ namespace Neo.Plugins
             this.PName = section.GetValue("PName", Environment.CurrentDirectory);
             this.SleepTime = section.GetValue("SleepTime", 10);
             this.WaitTime = section.GetValue("WaitTime", 900);
-            this.MarketContractIds = section.GetSection("MarketContractId").Exists()
-                ? section.GetSection("MarketContractId").GetChildren().Select(p => int.Parse(p.Value)).ToArray()
+            this.MarketContractIds = section.GetSection("MarketContractIds").Exists()
+                ? section.GetSection("MarketContractIds").GetChildren().Select(p => int.Parse(p.Value)).ToArray()
                 : new[] { 0 };
             this.Nep11ContractIds = section.GetSection("Nep11ContractIds").Exists()
                 ? section.GetSection("Nep11ContractIds").GetChildren().Select(p => int.Parse(p.Value)).ToArray()
@@ -57,11 +57,11 @@ namespace Neo.Plugins
             this.Nep17ContractIds = section.GetSection("Nep17ContractIds").Exists()
                 ? section.GetSection("Nep17ContractIds").GetChildren().Select(p => int.Parse(p.Value)).ToArray()
                 : new[] { 0 };
-            this.IlexContractHashes = section.GetSection("IlexContractIds").Exists()
-                ? section.GetSection("IlexContractIds").GetChildren().Select(p => p.Value).ToArray()
+            this.IlexContractHashes = section.GetSection("IlexContractHashes").Exists()
+                ? section.GetSection("IlexContractHashes").GetChildren().Select(p => p.Value).ToArray()
                 : new string[] { };
-            this.MetaContractHashes = section.GetSection("MetaContractIds").Exists()
-                ? section.GetSection("MetaContractIds").GetChildren().Select(p => p.Value).ToArray()
+            this.MetaContractHashes = section.GetSection("MetaContractHashes").Exists()
+                ? section.GetSection("MetaContractHashes").GetChildren().Select(p => p.Value).ToArray()
                 : new string[] { };
             this.NNS = section.GetValue("NNS", "");
 
