@@ -292,7 +292,7 @@ namespace Neo.Plugins
                 var notificationModel = new NotificationModel(executionModel.Txid, i, executionModel.BlockHash, executionModel.Timestamp, n.ScriptHash, n.EventName, executionModel.VmState, n.State);
                 notificationModels.Add(notificationModel);
             }
-            if (notificationModels.Count > 0 && notificationModels.Count < 500)
+            if (notificationModels.Count > 0 && notificationModels.Count < 1500)
             {
                 DBCache.Ins.cacheNotification.Add(notificationModels);
                 NotificationMgr.Ins.Filter(notificationModels, system, block, snapshot);

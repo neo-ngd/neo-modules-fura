@@ -60,9 +60,8 @@ namespace Neo.Plugins
             this.IlexContractHashes = section.GetSection("IlexContractHashes").Exists()
                 ? section.GetSection("IlexContractHashes").GetChildren().Select(p => p.Value).ToArray()
                 : new string[] { };
-            this.MetaContractHashes = section.GetSection("MetaContractHashes").Exists()
-                ? section.GetSection("MetaContractHashes").GetChildren().Select(p => p.Value).ToArray()
-                : new string[] { };
+
+
             this.NNS = section.GetValue("NNS", "");
 
         }
