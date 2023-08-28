@@ -449,41 +449,15 @@ namespace Neo.Plugins.VM
             byte[] script;
             BigInteger decimals = 0;
             BigInteger balanceOf = 0;
-            //先获取decimals来确定是不是可以分割的nft，如果是可以分割的nft，那么balanceOf（usr，tokenid），反为balanceOf（usr）
-            using (ScriptBuilder sb = new ScriptBuilder())
+            try
             {
-                sb.EmitDynamicCall(asset, "decimals");
-                script = sb.ToArray();
-            }
-
-            using (ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, settings: system.Settings, gas: 50000000))
-            {
-                if (engine.State.HasFlag(VMState.HALT))
-                {
-                    var stackitem = engine.ResultStack.Pop();
-                    if (!stackitem.IsNull)
-                    {
-                        decimals = stackitem.GetInteger();
-                    }
-                }
-            }
-            //如果精度是0，那么tokenid一定只有一个地址拥有。查询ownerOf看是不是属于addr，是就返回1，不是就返回0
-            if (decimals == 0)
-            {
-                //如果是有精度的就查询balanceof
+                //先获取decimals来确定是不是可以分割的nft，如果是可以分割的nft，那么balanceOf（usr，tokenid），反为balanceOf（usr）
                 using (ScriptBuilder sb = new ScriptBuilder())
                 {
-                    try
-                    {
-                        sb.EmitDynamicCall(asset, "ownerOf", Convert.FromBase64String(TokenId));
-
-                    }
-                    catch
-                    {
-                        sb.EmitDynamicCall(asset, "ownerOf", TokenId);
-                    }
+                    sb.EmitDynamicCall(asset, "decimals");
                     script = sb.ToArray();
                 }
+
                 using (ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, settings: system.Settings, gas: 50000000))
                 {
                     if (engine.State.HasFlag(VMState.HALT))
@@ -491,42 +465,76 @@ namespace Neo.Plugins.VM
                         var stackitem = engine.ResultStack.Pop();
                         if (!stackitem.IsNull)
                         {
-                            var bts = stackitem.GetSpan().ToArray();
-                            var owner_1 = new UInt160(bts);
-                            UInt160 owner_2 = null;
-                            UInt160.TryParse(UTF8Encoding.UTF8.GetString(bts), out owner_2);
-                            balanceOf = owner_1 == addr || owner_2 == addr ? 1 : 0;
+                            decimals = stackitem.GetInteger();
                         }
                     }
                 }
-            }
-            else
-            {
-                //如果是有精度的就查询balanceof
-                using (ScriptBuilder sb = new ScriptBuilder())
+                //如果精度是0，那么tokenid一定只有一个地址拥有。查询ownerOf看是不是属于addr，是就返回1，不是就返回0
+                if (decimals == 0)
                 {
-                    try
+                    //如果是有精度的就查询balanceof
+                    using (ScriptBuilder sb = new ScriptBuilder())
                     {
-                        sb.EmitDynamicCall(asset, "balanceOf", addr == null ? UInt160.Parse("0x1100000000000000000220000000000000000011") : addr, Convert.FromBase64String(TokenId));
-                    }
-                    catch
-                    {
-                        sb.EmitDynamicCall(asset, "balanceOf", addr == null ? UInt160.Parse("0x1100000000000000000220000000000000000011") : addr, TokenId);
-                    }
-                    script = sb.ToArray();
-                }
-                using (ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, settings: system.Settings, gas: 50000000))
-                {
-                    if (engine.State.HasFlag(VMState.HALT))
-                    {
-                        var stackitem = engine.ResultStack.Pop();
-                        if(!stackitem.IsNull)
+                        try
                         {
-                            balanceOf = stackitem.GetInteger();
+                            sb.EmitDynamicCall(asset, "ownerOf", Convert.FromBase64String(TokenId));
+
+                        }
+                        catch
+                        {
+                            sb.EmitDynamicCall(asset, "ownerOf", TokenId);
+                        }
+                        script = sb.ToArray();
+                    }
+                    using (ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, settings: system.Settings, gas: 50000000))
+                    {
+                        if (engine.State.HasFlag(VMState.HALT))
+                        {
+                            var stackitem = engine.ResultStack.Pop();
+                            if (!stackitem.IsNull)
+                            {
+                                var bts = stackitem.GetSpan().ToArray();
+                                var owner_1 = new UInt160(bts);
+                                UInt160 owner_2 = null;
+                                UInt160.TryParse(UTF8Encoding.UTF8.GetString(bts), out owner_2);
+                                balanceOf = owner_1 == addr || owner_2 == addr ? 1 : 0;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    //如果是有精度的就查询balanceof
+                    using (ScriptBuilder sb = new ScriptBuilder())
+                    {
+                        try
+                        {
+                            sb.EmitDynamicCall(asset, "balanceOf", addr == null ? UInt160.Parse("0x1100000000000000000220000000000000000011") : addr, Convert.FromBase64String(TokenId));
+                        }
+                        catch
+                        {
+                            sb.EmitDynamicCall(asset, "balanceOf", addr == null ? UInt160.Parse("0x1100000000000000000220000000000000000011") : addr, TokenId);
+                        }
+                        script = sb.ToArray();
+                    }
+                    using (ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, settings: system.Settings, gas: 50000000))
+                    {
+                        if (engine.State.HasFlag(VMState.HALT))
+                        {
+                            var stackitem = engine.ResultStack.Pop();
+                            if (!stackitem.IsNull)
+                            {
+                                balanceOf = stackitem.GetInteger();
+                            }
                         }
                     }
                 }
             }
+            catch(Exception e)
+            {
+                Loger.Warning(string.Format("Commit:{0}", e.Message));
+            }
+
             return balanceOf;
         }
 
