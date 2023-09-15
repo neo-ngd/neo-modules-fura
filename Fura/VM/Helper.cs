@@ -243,7 +243,7 @@ namespace Neo.Plugins.VM
                 t.Item3 = GetAssetTotalSupply(system, snapshot, asset);
 
             }
-            catch(Exception e)
+            catch
             {
                 t.Item3 = 0;
             }
