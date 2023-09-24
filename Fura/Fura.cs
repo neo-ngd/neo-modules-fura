@@ -75,6 +75,7 @@ namespace Neo.Plugins
                         {
                             try
                             {
+                                Loger.Common(string.Format("OnPersist------ {0} 高度的数据正在录入-- 总计有{1}比交易", block.Index, applicationExecutedList.Count));
                                 //先查询这个高度有没有存过execution，如果存过了，证明是断点重连，需要排重。
                                 bool exsit = ExecutionModel.ExistByBlockHash(block.Hash);
                                 DBCache.Ins.Reset();
@@ -82,7 +83,15 @@ namespace Neo.Plugins
                                 {
                                     Parallel.For(0, applicationExecutedList.Count, (i) =>
                                     {
-                                        ExecApplicationExecuted(applicationExecutedList[i], system, block, snapshot);
+                                        try
+                                        {
+                                            ExecApplicationExecuted(applicationExecutedList[i], system, block, snapshot);
+                                        }
+                                        catch (Exception e)
+                                        {
+                                            DebugModel debugModel = new(e.Message);
+                                            debugModel.SaveAsync().Wait();
+                                        }
                                     });
                                 }
                                 //标记此块已经结束
@@ -261,17 +270,9 @@ namespace Neo.Plugins
                 executionModel = new ExecutionModel(applicationExecuted.Transaction.Hash, block.Hash, block.Timestamp, applicationExecuted.Trigger.ToString(), applicationExecuted.VMState.ToString(), applicationExecuted.Exception?.ToString(), applicationExecuted.GasConsumed, applicationExecuted.Stack); ;
                 if(executionModel.VmState == "HALT")
                 {
-                    try
-                    {
-                        //通过解析script得到调用了哪些合约哪些方法，从而处理一些特殊数据
-                        list_ScCall = VM.Helper.Script2ScCallModels(applicationExecuted.Transaction.Script.ToArray(), applicationExecuted.Transaction.Hash, applicationExecuted.Transaction.Sender, applicationExecuted.VMState.ToString());
-                    }
-                    catch(Exception e)
-                    {
-                        DebugModel debugModel = new(e.Message);
-                        debugModel.SaveAsync().Wait();
-                    }
-}
+                    //通过解析script得到调用了哪些合约哪些方法，从而处理一些特殊数据
+                    list_ScCall = VM.Helper.Script2ScCallModels(applicationExecuted.Transaction.Script.ToArray(), applicationExecuted.Transaction.Hash, applicationExecuted.Transaction.Sender, applicationExecuted.VMState.ToString());
+                }
             }
             else
             {
