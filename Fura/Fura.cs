@@ -58,6 +58,7 @@ namespace Neo.Plugins
 
         void OnCommitting(NeoSystem system, Block block, DataCache snapshot, IReadOnlyList<Blockchain.ApplicationExecuted> applicationExecutedList)
         {
+            Loger.Common(string.Format("OnPersist------ {0} 高度的数据正在录入-- 总计有{1}比交易", block.Index, applicationExecutedList.Count));
             bool loop = true;
             uint errLoopTimes = 0;
             while (loop)
@@ -75,7 +76,6 @@ namespace Neo.Plugins
                         {
                             try
                             {
-                                Loger.Common(string.Format("OnPersist------ {0} 高度的数据正在录入-- 总计有{1}比交易", block.Index, applicationExecutedList.Count));
                                 //先查询这个高度有没有存过execution，如果存过了，证明是断点重连，需要排重。
                                 bool exsit = ExecutionModel.ExistByBlockHash(block.Hash);
                                 DBCache.Ins.Reset();
@@ -134,6 +134,7 @@ namespace Neo.Plugins
 
         void OnCommitted(NeoSystem system, Block block)
         {
+            Loger.Common(string.Format("OnCommit------ {0} 高度的数据正在录入", block.Index));
             bool loop = true;
             uint errLoopTimes = 0;
             while (loop)
