@@ -53,7 +53,7 @@ namespace Neo.Plugins.Models
             TokenName = tokenName;
             Decimals = decimals;
             Symbol = symbol;
-            TotalSupply = BsonDecimal128.Create(totalSupply.ToString());
+            TotalSupply = BsonDecimal128.Create(totalSupply.ToString().WipeNumStrToFitDecimal128());
             Type = enumAssetType.ToString();
         }
 

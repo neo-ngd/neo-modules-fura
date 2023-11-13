@@ -50,7 +50,7 @@ namespace Neo.Plugins.Models
             Voter = voter;
             Candidate = candidate;
             CandidatePubKey = candidatePubKey;
-            BalanceOfVoter = BsonDecimal128.Create(balanceOfVoter);
+            BalanceOfVoter = BsonDecimal128.Create(balanceOfVoter.WipeNumStrToFitDecimal128());
             LastTransferTxid = lastTransferTxid;
         }
 

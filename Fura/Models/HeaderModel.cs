@@ -79,8 +79,8 @@ namespace Neo.Plugins.Models
 
         public WitnessModel(Witness witness)
         {
-            Invocation_B64String = Convert.ToBase64String(witness.InvocationScript);
-            Verification_B64String = Convert.ToBase64String(witness.VerificationScript);
+            Invocation_B64String = Convert.ToBase64String(witness.InvocationScript.ToArray());
+            Verification_B64String = Convert.ToBase64String(witness.VerificationScript.ToArray());
         }
 
         public static WitnessModel[] ToModels(Witness[] witnesses)

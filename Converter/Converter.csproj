@@ -2,13 +2,13 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
     <None Remove="Neo" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Neo" Version="3.0.2" />
+    <PackageReference Include="Neo" Version="3.0.3" />
   </ItemGroup>
 </Project>

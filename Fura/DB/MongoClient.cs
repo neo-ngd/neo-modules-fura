@@ -35,7 +35,7 @@ namespace Neo.Plugins
 
         public static async Task InitCollectionAndIndex()
         {
-            var assembly = Assembly.Load(File.ReadAllBytes("Plugins/Fura.dll"));
+            var assembly = Assembly.Load(File.ReadAllBytes("Plugins/Fura/Fura.dll"));
 
             foreach (Type type in assembly.ExportedTypes)
             {
