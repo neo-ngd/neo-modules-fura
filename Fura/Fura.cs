@@ -94,6 +94,7 @@ namespace Neo.Plugins
                                         }
                                     });
                                 }
+                                Loger.Common(String.Format("application exec done"));
                                 //标记此块已经结束
                                 RecordPersistModel recordPersistModel = RecordPersistModel.Get(block.Index);
                                 recordPersistModel.State = EnumRecordState.Confirm.ToString();
@@ -111,12 +112,13 @@ namespace Neo.Plugins
                                 errLoopTimes++;
                                 DebugModel debugModel = new(string.Format("{0}---ExecApplicationExecuted----block: {1}, loopTimes:{2}, error: {3}", Settings.Default.PName, block.Index, errLoopTimes, e));
                                 debugModel.SaveAsync().Wait();
-                                if (errLoopTimes < 100)
+                                if (errLoopTimes < 30)
                                 {
                                     System.Threading.Thread.Sleep(Settings.Default.SleepTime * 100);
                                 }
                                 else
                                 {
+                                    loop = false;
                                     throw;
                                 }
                             }
