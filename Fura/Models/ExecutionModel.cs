@@ -52,7 +52,14 @@ namespace Neo.Plugins.Models
             {
                 Stacks = stack.Select(p =>
                 {
-                    return p.ToJson().ToString();
+                    try
+                    {
+                        return p.ToJson().ToString();
+                    }
+                    catch
+                    {
+                        return "";
+                    }
                 }).ToArray();
             }
             else
