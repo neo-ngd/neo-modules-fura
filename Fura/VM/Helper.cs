@@ -64,7 +64,15 @@ namespace Neo.Plugins.VM
                     string[] hexParams = new string[paramsCount];
                     for (var i = 0; i < paramsCount; i++)
                     {
-                        hexParams[i] = instructions[++index].Operand.Span.ToHexString();
+                        ++index;
+                        if (instructions[index].OpCode >= OpCode.PUSH0 && instructions[index].OpCode <= OpCode.PUSH16)
+                        {
+                            hexParams[i] = (Convert.ToInt16(instructions[index].OpCode) - 16).ToString("X2");
+                        }
+                        else
+                        {
+                            hexParams[i] = instructions[index].Operand.Span.ToHexString();
+                        }
                     }
                     scCalls.Add(new(vmstate, txid, sender, UInt160.Parse(contractHash), method, callFlags.ToString(), hexParams));
                 }
