@@ -48,7 +48,7 @@ namespace Neo.Plugins.Models
 
         public async static Task InitCollectionAndIndex()
         {
-            await DB.CreateCollection<CandidateModel>(new CreateCollectionOptions<CandidateModel>());
+            await DB.CreateCollectionAsync<CandidateModel>( o => { o = new CreateCollectionOptions<CandidateModel>(); });
             await DB.Index<CandidateModel>().Key(a => a.Candidate, KeyType.Ascending).Option(o => { o.Name = "_candidate_unique_"; o.Unique = true; }).CreateAsync();
         }
     }

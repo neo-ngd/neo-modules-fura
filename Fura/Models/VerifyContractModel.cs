@@ -28,7 +28,7 @@ namespace Neo.Plugins.Models
 
         public async static Task InitCollectionAndIndex()
         {
-            await DB.CreateCollection<VerifyContractModel>(new CreateCollectionOptions<VerifyContractModel>());
+            await DB.CreateCollectionAsync<VerifyContractModel>( o => { o = new CreateCollectionOptions<VerifyContractModel>(); });
         }
     }
 }

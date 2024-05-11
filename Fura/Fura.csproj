@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>Neo.Plugins</RootNamespace>
   </PropertyGroup>
 
@@ -18,10 +18,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MongoDB.Bson" Version="2.13.0" />
-    <PackageReference Include="MongoDB.Driver" Version="2.13.0" />
-    <PackageReference Include="MongoDB.Entities" Version="20.20.0" />
-    <PackageReference Include="Neo" Version="3.6.2" />
+    <PackageReference Include="MongoDB.Bson" Version="2.25.0" />
+    <PackageReference Include="MongoDB.Driver" Version="2.25.0" />
+    <PackageReference Include="MongoDB.Entities" Version="23.1.0" />
+    <PackageReference Include="Neo" Version="3.7.1" />
   </ItemGroup>
     <ItemGroup>
       <Content Include="Fura\config.json">

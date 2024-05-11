@@ -62,7 +62,7 @@ namespace Neo.Plugins.Models
 
         public async static Task InitCollectionAndIndex()
         {
-            await DB.CreateCollection<MarketNotificationModel>(new CreateCollectionOptions<MarketNotificationModel>());
+            await DB.CreateCollectionAsync<MarketNotificationModel>( o => { o = new CreateCollectionOptions<MarketNotificationModel>(); });
 
             await DB.Index<MarketNotificationModel>()
                 .Key(a => a.Nonce, KeyType.Ascending)

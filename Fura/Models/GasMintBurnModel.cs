@@ -37,7 +37,7 @@ namespace Neo.Plugins.Models
 
         public async static Task InitCollectionAndIndex()
         {
-            await DB.CreateCollection<GasMintBurnModel>(new CreateCollectionOptions<GasMintBurnModel>());
+            await DB.CreateCollectionAsync<GasMintBurnModel>( o => { o = new CreateCollectionOptions<GasMintBurnModel>(); });
             await DB.Index<GasMintBurnModel>().Key(a => a.BlockIndex, KeyType.Ascending).Option(o => { o.Name = "_blockIndex_"; }).CreateAsync();
         }
     }

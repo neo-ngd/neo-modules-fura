@@ -53,11 +53,15 @@ namespace Neo.Plugins
             }
             MongoClient.InitCollectionAndIndex().Wait();
 
-            MongoClient.InitBasicData(system).Wait();
         }
 
         void OnCommitting(NeoSystem system, Block block, DataCache snapshot, IReadOnlyList<Blockchain.ApplicationExecuted> applicationExecutedList)
         {
+            if(block.Index == 0)
+            {
+                MongoClient.InitBasicData(system, snapshot).Wait();
+            }
+
             Loger.Common(string.Format("OnPersist------ {0} 高度的数据正在录入-- 总计有{1}比交易", block.Index, applicationExecutedList.Count));
             bool loop = true;
             uint errLoopTimes = 0;

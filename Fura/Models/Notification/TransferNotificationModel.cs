@@ -60,7 +60,7 @@ namespace Neo.Plugins.Models
 
         public async static Task InitCollectionAndIndex()
         {
-            await DB.CreateCollection<TransferNotificationModel>(new CreateCollectionOptions<TransferNotificationModel>());
+            await DB.CreateCollectionAsync<TransferNotificationModel>( o => { o = new CreateCollectionOptions<TransferNotificationModel>(); });
             await DB.Index<TransferNotificationModel>().Key(a => a.AssetHash, KeyType.Ascending).Option(o => { o.Name = "_contract_"; }).CreateAsync();
             await DB.Index<TransferNotificationModel>().Key(a => a.Txid, KeyType.Ascending).Option(o => { o.Name = "_txid_"; }).CreateAsync();
             await DB.Index<TransferNotificationModel>().Key(a => a.From, KeyType.Ascending).Option(o => { o.Name = "_from_"; }).CreateAsync();
