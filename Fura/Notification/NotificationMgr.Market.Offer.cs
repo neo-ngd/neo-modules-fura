@@ -15,7 +15,7 @@ namespace Neo.Plugins.Notification
         private bool ExecuteOfferNotification(NotificationModel notificationModel, NeoSystem system, Block block, DataCache snapshot)
         {
             ContractModel contractModel = DBCache.Ins.cacheContract.Get(notificationModel.ContractHash);
-            if (Settings.Default.MarketContractIds.Contains(contractModel._ID))
+            if (Settings.Default.MarketContractIds.Contains(contractModel.ContractId))
             {
                 //(nonce, 用户 ,求购使用的nep17资产，nep17数额，求购的nft的hash，求购的nfttokenid，求购截止日期)
                 BigInteger nonce = 0;

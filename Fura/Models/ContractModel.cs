@@ -16,7 +16,7 @@ namespace Neo.Plugins.Models
         public UInt160 Hash { get; set; }
 
         [BsonElement("id")]
-        public int _ID { get; set; }
+        public int ContractId { get; set; }
 
         [BsonElement("updatecounter")]
         public short UpdateCounter { get; set; }
@@ -43,7 +43,7 @@ namespace Neo.Plugins.Models
         {
             Hash = hash;
             Name = name;
-            _ID = id;
+            ContractId = id;
             UpdateCounter = updateCounter;
             Nef = BsonString.Create(nef.ToString());
             Manifest = BsonString.Create(manifest.ToString());

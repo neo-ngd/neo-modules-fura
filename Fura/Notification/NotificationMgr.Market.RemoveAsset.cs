@@ -13,7 +13,7 @@ namespace Neo.Plugins.Notification
         private bool ExecuteRemoveAssetNotification(NotificationModel notificationModel, NeoSystem system, Block block, DataCache snapshot)
         {
             ContractModel contractModel = DBCache.Ins.cacheContract.Get(notificationModel.ContractHash);
-            if (Settings.Default.MarketContractIds.Contains(contractModel._ID))
+            if (Settings.Default.MarketContractIds.Contains(contractModel.ContractId))
             {
                 UInt160 asset = null;
                 bool succ = true;
