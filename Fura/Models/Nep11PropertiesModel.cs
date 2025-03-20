@@ -38,7 +38,7 @@ namespace Neo.Plugins.Models
 
         public async static Task InitCollectionAndIndex()
         {
-            await DB.CreateCollection<Nep11PropertiesModel>(new CreateCollectionOptions<Nep11PropertiesModel>());
+            await DB.CreateCollectionAsync<Nep11PropertiesModel>( o => { o = new CreateCollectionOptions<Nep11PropertiesModel>(); });
             await DB.Index<Nep11PropertiesModel>().Key(a => a.Asset, KeyType.Ascending).Key(a => a.TokenId, KeyType.Ascending).Option(o => { o.Name = "_asset_tokenid_unique_"; o.Unique = true; }).CreateAsync();
         }
     }

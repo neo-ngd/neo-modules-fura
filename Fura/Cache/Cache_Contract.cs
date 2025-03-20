@@ -71,7 +71,7 @@ namespace Neo.Plugins.Cache
 
             if (isDestroy)
             {
-                contractModel = new ContractModel() { UpdateCounter = -1, CreateTime = createTime, Hash = contractHash, _ID = -999, CreateTxid = txid, Manifest = "", Name = "", Nef = ""};
+                contractModel = new ContractModel() { UpdateCounter = -1, CreateTime = createTime, Hash = contractHash, ContractId = -999, CreateTxid = txid, Manifest = "", Name = "", Nef = ""};
             }
             else
             {

@@ -84,7 +84,7 @@ namespace Neo.Plugins.Models
 
         public async static Task InitCollectionAndIndex()
         {
-            await DB.CreateCollection<MetaPropertiesModel>(new CreateCollectionOptions<MetaPropertiesModel>());
+            await DB.CreateCollectionAsync<MetaPropertiesModel>(o => { o = new CreateCollectionOptions<MetaPropertiesModel>(); });
             await DB.Index<MetaPropertiesModel>().Key(a => a.Asset, KeyType.Ascending).Key(a => a.TokenId, KeyType.Ascending).Option(o => { o.Name = "_asset_tokenid_unique_"; o.Unique = true; }).CreateAsync();
         }
     }

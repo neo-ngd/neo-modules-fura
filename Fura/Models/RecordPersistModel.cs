@@ -45,7 +45,7 @@ namespace Neo.Plugins.Models
 
         public async static Task InitCollectionAndIndex()
         {
-            await DB.CreateCollection<RecordPersistModel>(new CreateCollectionOptions<RecordPersistModel>());
+            await DB.CreateCollectionAsync<RecordPersistModel>( o => { o = new CreateCollectionOptions<RecordPersistModel>(); });
             await DB.Index<RecordPersistModel>().Key(a => a.BlockIndex, KeyType.Ascending).Option(o => { o.Name = "_blockIndex_unique_"; o.Unique = true; }).CreateAsync();
         }
     }
