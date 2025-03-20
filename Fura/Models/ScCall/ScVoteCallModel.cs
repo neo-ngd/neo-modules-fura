@@ -40,7 +40,7 @@ namespace Neo.Plugins.Models
 
         public async static Task InitCollectionAndIndex()
         {
-            await DB.CreateCollection<ScVoteCallModel>(new CreateCollectionOptions<ScVoteCallModel>());
+            await DB.CreateCollectionAsync<ScVoteCallModel>( o => { o = new CreateCollectionOptions<ScVoteCallModel>(); });
             await DB.Index<ScVoteCallModel>().Key(a => a.Voter, KeyType.Ascending).Option(o => { o.Name = "_voter_"; }).CreateAsync();
             await DB.Index<ScVoteCallModel>().Key(a => a.Txid, KeyType.Ascending).Option(o => { o.Name = "_txid_"; }).CreateAsync();
             await DB.Index<ScVoteCallModel>().Key(a => a.Candidate, KeyType.Ascending).Option(o => { o.Name = "_candidate_"; }).CreateAsync();

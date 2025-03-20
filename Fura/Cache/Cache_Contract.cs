@@ -14,6 +14,7 @@ namespace Neo.Plugins.Cache
         public UInt160 Hash;
         public ulong Time;
         public UInt256 Txid;
+        public bool IsDestroy;
     }
 
     public class CacheContract : IDBCache
@@ -33,9 +34,9 @@ namespace Neo.Plugins.Cache
             D_Contract = new ConcurrentDictionary<UInt160, CacheContractParams>();
         }
 
-        public void AddNeedUpdate(UInt160 contractHash, ulong createTime, UInt256 txid)
+        public void AddNeedUpdate(UInt160 contractHash, ulong createTime, UInt256 txid, bool isDestroy = false)
         {
-            D_Contract[contractHash] = new() { Hash = contractHash, Time = createTime, Txid = txid };
+            D_Contract[contractHash] = new() { Hash = contractHash, Time = createTime, Txid = txid , IsDestroy = isDestroy };
         }
 
         public List<CacheContractParams> GetNeedUpdate()
@@ -48,7 +49,7 @@ namespace Neo.Plugins.Cache
             List<CacheContractParams> list = GetNeedUpdate();
             Parallel.For(0, list.Count, (i) =>
             {
-                AddOrUpdate(list[i].Hash, snapshot, list[i].Time, list[i].Txid);
+                AddOrUpdate(list[i].Hash, snapshot, list[i].Time, list[i].Txid, list[i].IsDestroy);
             });
         }
 
@@ -64,24 +65,21 @@ namespace Neo.Plugins.Cache
             }
         }
 
-        public void AddOrUpdate(UInt160 contractHash, DataCache snapshot, ulong createTime, UInt256 txid)
+        public void AddOrUpdate(UInt160 contractHash, DataCache snapshot, ulong createTime, UInt256 txid, bool isDestroy)
         {
             ContractModel contractModel = Get(contractHash);
-            if (contractModel is null)
+
+            if (isDestroy)
             {
-                StorageKey key = new KeyBuilder(Neo.SmartContract.Native.NativeContract.ContractManagement.Id, 8).Add(contractHash);
-                ContractState contract = snapshot.TryGet(key)?.GetInteroperable<ContractState>();
-                contractModel = new(contractHash, contract.Manifest.Name, contract.Id, contract.UpdateCounter, contract.Nef.ToJson(), contract.Manifest.ToJson(), createTime, txid);
+                contractModel = new ContractModel() { UpdateCounter = -1, CreateTime = createTime, Hash = contractHash, ContractId = -999, CreateTxid = txid, Manifest = "", Name = "", Nef = ""};
             }
             else
             {
-                if (contractModel.CreateTime == createTime)
-                    return;
                 StorageKey key = new KeyBuilder(Neo.SmartContract.Native.NativeContract.ContractManagement.Id, 8).Add(contractHash);
                 ContractState contract = snapshot.TryGet(key)?.GetInteroperable<ContractState>();
-                if (contractModel.UpdateCounter == contract.UpdateCounter)
+                if (contractModel is not null && (contract is null || contractModel.CreateTxid == txid || contractModel.UpdateCounter == contract.UpdateCounter))
                     return;
-                contractModel = new(contractHash, contract.Manifest.Name, contract.Id, contract.UpdateCounter, contract.Nef.ToJson(), contract.Manifest.ToJson(), createTime, txid);
+                contractModel = new(contractHash, contract.Manifest.Name, contract.Id, (short)contract.UpdateCounter, contract.Nef.ToJson(), contract.Manifest.ToJson(), createTime, txid);
             }
             D_ContractModel[contractHash] = contractModel;
         }

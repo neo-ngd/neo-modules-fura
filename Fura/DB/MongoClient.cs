@@ -6,8 +6,11 @@ using System.Security.Authentication;
 using System.Threading.Tasks;
 using MongoDB.Driver;
 using MongoDB.Entities;
+using Neo.Persistence;
 using Neo.Plugins.Models;
+using Neo.SmartContract;
 using Neo.SmartContract.Native;
+using System.Numerics;
 
 namespace Neo.Plugins
 {
@@ -35,7 +38,7 @@ namespace Neo.Plugins
 
         public static async Task InitCollectionAndIndex()
         {
-            var assembly = Assembly.Load(File.ReadAllBytes("Plugins/Fura.dll"));
+            var assembly = Assembly.Load(File.ReadAllBytes("Plugins/Fura/Fura.dll"));
 
             foreach (Type type in assembly.ExportedTypes)
             {
@@ -55,31 +58,24 @@ namespace Neo.Plugins
             Loger.Common("collection and index init succ");
         }
 
-        public static async Task InitBasicData(NeoSystem system)
+        public static async Task InitBasicData(NeoSystem system, DataCache snapshot)
         {
             AssetModel assetModel = (from a in DB.Queryable<AssetModel>() where a.Hash.Equals(NativeContract.GAS.Hash) select a).FirstOrDefault();
             if (assetModel is not null)
                 return;
             using (var transaction = new MongoDB.Entities.Transaction())
             {
-                ContractModel contractModel_oracle = new(NativeContract.Oracle.Hash, "Oracle", NativeContract.Oracle.Id, 0, NativeContract.Oracle.Nef.ToJson(), NativeContract.Oracle.Manifest.ToJson(), system.GenesisBlock.Timestamp, UInt256.Zero);
-                ContractModel contractModel_roleManagement = new(NativeContract.RoleManagement.Hash, "RoleManagement", NativeContract.RoleManagement.Id, 0, NativeContract.RoleManagement.Nef.ToJson(), NativeContract.RoleManagement.Manifest.ToJson(), system.GenesisBlock.Timestamp, UInt256.Zero);
-                ContractModel contractModel_policy = new(NativeContract.Policy.Hash, "Policy", NativeContract.Policy.Id, 0, NativeContract.Policy.Nef.ToJson(), NativeContract.Policy.Manifest.ToJson(), system.GenesisBlock.Timestamp, UInt256.Zero);
-                ContractModel contractModel_gas = new(NativeContract.GAS.Hash, "GasToken", NativeContract.GAS.Id, 0, NativeContract.GAS.Nef.ToJson(), NativeContract.GAS.Manifest.ToJson(), system.GenesisBlock.Timestamp, UInt256.Zero);
-                ContractModel contractModel_neo = new(NativeContract.NEO.Hash, "NeoToken", NativeContract.NEO.Id, 0, NativeContract.NEO.Nef.ToJson(), NativeContract.NEO.Manifest.ToJson(), system.GenesisBlock.Timestamp, UInt256.Zero);
-                ContractModel contractModel_ledger = new(NativeContract.Ledger.Hash, "Ledger", NativeContract.Ledger.Id, 0, NativeContract.Ledger.Nef.ToJson(), NativeContract.Ledger.Manifest.ToJson(), system.GenesisBlock.Timestamp, UInt256.Zero);
-                ContractModel contractModel_cryptoLib = new(NativeContract.CryptoLib.Hash, "CryptoLib", NativeContract.CryptoLib.Id, 0, NativeContract.CryptoLib.Nef.ToJson(), NativeContract.CryptoLib.Manifest.ToJson(), system.GenesisBlock.Timestamp, UInt256.Zero);
-                ContractModel contractModel_stdLib = new(NativeContract.StdLib.Hash, "StdLib", NativeContract.StdLib.Id, 0, NativeContract.StdLib.Nef.ToJson(), NativeContract.StdLib.Manifest.ToJson(), system.GenesisBlock.Timestamp, UInt256.Zero);
-                ContractModel contractModel_contractManagement = new(NativeContract.ContractManagement.Hash, "ContractManagement", NativeContract.ContractManagement.Id, 0, NativeContract.ContractManagement.Nef.ToJson(), NativeContract.ContractManagement.Manifest.ToJson(), system.GenesisBlock.Timestamp, UInt256.Zero);
-                await transaction.SaveAsync(contractModel_oracle);
-                await transaction.SaveAsync(contractModel_roleManagement);
-                await transaction.SaveAsync(contractModel_policy);
-                await transaction.SaveAsync(contractModel_gas);
-                await transaction.SaveAsync(contractModel_neo);
-                await transaction.SaveAsync(contractModel_ledger);
-                await transaction.SaveAsync(contractModel_cryptoLib);
-                await transaction.SaveAsync(contractModel_stdLib);
-                await transaction.SaveAsync(contractModel_contractManagement);
+                await transaction.SaveAsync(GetContractModel(snapshot, NativeContract.Oracle, system.GenesisBlock.Timestamp));
+                await transaction.SaveAsync(GetContractModel(snapshot, NativeContract.RoleManagement, system.GenesisBlock.Timestamp));
+                await transaction.SaveAsync(GetContractModel(snapshot, NativeContract.Policy, system.GenesisBlock.Timestamp));
+                await transaction.SaveAsync(GetContractModel(snapshot, NativeContract.GAS, system.GenesisBlock.Timestamp));
+                await transaction.SaveAsync(GetContractModel(snapshot, NativeContract.NEO, system.GenesisBlock.Timestamp));
+                await transaction.SaveAsync(GetContractModel(snapshot, NativeContract.Ledger, system.GenesisBlock.Timestamp));
+                await transaction.SaveAsync(GetContractModel(snapshot, NativeContract.CryptoLib, system.GenesisBlock.Timestamp));
+                await transaction.SaveAsync(GetContractModel(snapshot, NativeContract.StdLib, system.GenesisBlock.Timestamp));
+                await transaction.SaveAsync(GetContractModel(snapshot, NativeContract.ContractManagement, system.GenesisBlock.Timestamp));
+
+
                 AssetModel assetModel_gas = new(NativeContract.GAS.Hash, system.GenesisBlock.Timestamp, "GasToken", 8, "GAS", 0, EnumAssetType.NEP17);
                 AssetModel assetModel_neo = new(NativeContract.NEO.Hash, system.GenesisBlock.Timestamp, "NeoToken", 0, "NEO", 0, EnumAssetType.NEP17);
                 await transaction.SaveAsync(assetModel_gas);
@@ -105,6 +101,14 @@ namespace Neo.Plugins
                 await transaction.CommitAsync();
             }
             Loger.Common("data init succ");
+        }
+
+        public static  ContractModel GetContractModel(DataCache snapshot, NativeContract contract, ulong timestamp)
+        {
+            StorageKey key = new KeyBuilder(Neo.SmartContract.Native.NativeContract.ContractManagement.Id, 8).Add(contract.Hash);
+            ContractState contracStatet = snapshot.TryGet(key)?.GetInteroperable<ContractState>();
+            ContractModel contractModel = new(contract.Hash, contract.Name, contract.Id, 0, contracStatet.Nef.ToJson(), contracStatet.Manifest.ToJson(), timestamp, UInt256.Zero);
+            return contractModel;
         }
     }
 }

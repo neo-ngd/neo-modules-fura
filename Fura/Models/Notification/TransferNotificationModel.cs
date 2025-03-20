@@ -52,15 +52,15 @@ namespace Neo.Plugins.Models
             AssetHash = assetHash;
             From = from;
             To = to;
-            Value = BsonDecimal128.Create(value.ToString());
-            FromBalanceOf = BsonDecimal128.Create(fromBalanceOf.ToString());
-            ToBalanceOf = BsonDecimal128.Create(toBalanceOf.ToString());
+            Value = BsonDecimal128.Create(value.ToString().WipeNumStrToFitDecimal128());
+            FromBalanceOf = BsonDecimal128.Create(fromBalanceOf.ToString().WipeNumStrToFitDecimal128());
+            ToBalanceOf = BsonDecimal128.Create(toBalanceOf.ToString().WipeNumStrToFitDecimal128());
             Timestamp = timestamp;
         }
 
         public async static Task InitCollectionAndIndex()
         {
-            await DB.CreateCollection<TransferNotificationModel>(new CreateCollectionOptions<TransferNotificationModel>());
+            await DB.CreateCollectionAsync<TransferNotificationModel>( o => { o = new CreateCollectionOptions<TransferNotificationModel>(); });
             await DB.Index<TransferNotificationModel>().Key(a => a.AssetHash, KeyType.Ascending).Option(o => { o.Name = "_contract_"; }).CreateAsync();
             await DB.Index<TransferNotificationModel>().Key(a => a.Txid, KeyType.Ascending).Option(o => { o.Name = "_txid_"; }).CreateAsync();
             await DB.Index<TransferNotificationModel>().Key(a => a.From, KeyType.Ascending).Option(o => { o.Name = "_from_"; }).CreateAsync();

@@ -14,7 +14,7 @@ namespace Neo.Plugins.Models
         public UInt160 Hash { get; set; }
 
         [BsonElement("id")]
-        public int _ID { get; set; }
+        public int ContractId { get; set; }
 
         [BsonElement("updatecounter")]
         public ushort UpdateCounter { get; set; }
@@ -22,13 +22,13 @@ namespace Neo.Plugins.Models
         public VerifyContractModel(UInt160 hash, int _id, ushort updateCounter)
         {
             Hash = hash;
-            _ID = _id;
+            ContractId = _id;
             UpdateCounter = updateCounter;
         }
 
         public async static Task InitCollectionAndIndex()
         {
-            await DB.CreateCollection<VerifyContractModel>(new CreateCollectionOptions<VerifyContractModel>());
+            await DB.CreateCollectionAsync<VerifyContractModel>( o => { o = new CreateCollectionOptions<VerifyContractModel>(); });
         }
     }
 }

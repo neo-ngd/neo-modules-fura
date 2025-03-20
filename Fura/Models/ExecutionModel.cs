@@ -48,7 +48,24 @@ namespace Neo.Plugins.Models
             Exception = exception;
             GasConsumed = gasconsumed;
             Timestamp = timestamp;
-            Stacks = stack.Select(p => p.ToJson().ToString()).ToArray();
+            if(stack.Length < 500)
+            {
+                Stacks = stack.Select(p =>
+                {
+                    try
+                    {
+                        return p.ToJson().ToString();
+                    }
+                    catch
+                    {
+                        return "";
+                    }
+                }).ToArray();
+            }
+            else
+            {
+                Stacks = new string[] { };
+            }
         }
 
         public static ExecutionModel Get(UInt256 txid,UInt256 blockHash, string trigger)
@@ -70,7 +87,7 @@ namespace Neo.Plugins.Models
 
         public async static Task InitCollectionAndIndex()
         {
-            await DB.CreateCollection<ExecutionModel>(new CreateCollectionOptions<ExecutionModel>());
+            await DB.CreateCollectionAsync<ExecutionModel>( o => { o = new CreateCollectionOptions<ExecutionModel>(); });
             await DB.Index<ExecutionModel>().Key(a => a.Txid, KeyType.Ascending).Option(o => { o.Name = "_txid_"; }).CreateAsync();
             await DB.Index<ExecutionModel>().Key(a => a.BlockHash, KeyType.Ascending).Option(o => { o.Name = "_blockhash_"; }).CreateAsync();
             await DB.Index<ExecutionModel>().Key(a => a.Txid, KeyType.Ascending).Key(a => a.BlockHash, KeyType.Ascending).Key(a => a.Trigger, KeyType.Ascending).Option(o => { o.Name = "_txid_blockhash_trigger_"; }).CreateAsync();

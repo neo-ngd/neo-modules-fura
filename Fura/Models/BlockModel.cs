@@ -76,7 +76,7 @@ namespace Neo.Plugins.Models
 
         public async static Task InitCollectionAndIndex()
         {
-            await DB.CreateCollection<BlockModel>(new CreateCollectionOptions<BlockModel>());
+            await DB.CreateCollectionAsync<BlockModel>( o => { o = new CreateCollectionOptions<BlockModel>(); });
             await DB.Index<BlockModel>().Key(a => a.Hash, KeyType.Ascending).Option(o => { o.Name = "_hash_unique_"; o.Unique = true; }).CreateAsync();
             await DB.Index<BlockModel>().Key(a => a.Index, KeyType.Ascending).Option(o => { o.Name = "_index_unique_"; o.Unique = true; }).CreateAsync();
         }

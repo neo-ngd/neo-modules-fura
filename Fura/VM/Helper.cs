@@ -39,7 +39,7 @@ namespace Neo.Plugins.VM
         public static List<ScCallModel> Script2ScCallModels(byte[] script, UInt256 txid, UInt160 sender, string vmstate)
         {
             List<ScCallModel> scCalls = new List<ScCallModel>();
-            List<Instruction> instructions = Script2Instruction(script).ToArray().Reverse().ToList(); ;
+            List<Instruction> instructions = Script2Instruction(txid, script).ToArray().Reverse().ToList();
             for (var index = 0; index < instructions.Count; index++)
             {
                 var instruction = instructions[index];
@@ -64,7 +64,15 @@ namespace Neo.Plugins.VM
                     string[] hexParams = new string[paramsCount];
                     for (var i = 0; i < paramsCount; i++)
                     {
-                        hexParams[i] = instructions[++index].Operand.Span.ToHexString();
+                        ++index;
+                        if (instructions[index].OpCode >= OpCode.PUSH0 && instructions[index].OpCode <= OpCode.PUSH16)
+                        {
+                            hexParams[i] = (Convert.ToInt16(instructions[index].OpCode) - 16).ToString("X2");
+                        }
+                        else
+                        {
+                            hexParams[i] = instructions[index].Operand.Span.ToHexString();
+                        }
                     }
                     scCalls.Add(new(vmstate, txid, sender, UInt160.Parse(contractHash), method, callFlags.ToString(), hexParams));
                 }
@@ -72,16 +80,25 @@ namespace Neo.Plugins.VM
             return scCalls;
         }
 
-        public static List<Instruction> Script2Instruction(byte[] script)
+        public static List<Instruction> Script2Instruction(UInt256 txid, byte[] script)
         {
-            List<Instruction> instructions = new List<Instruction>();
-            Script s = new Script(script,true);
-            for (int ip = 0; ip < s.Length; ip += s.GetInstruction(ip).Size)
+            try
             {
-                var instruction = s.GetInstruction(ip);
-                instructions.Add(instruction);
+                List<Instruction> instructions = new List<Instruction>();
+                Script s = new Script(script, true);
+                for (int ip = 0; ip < s.Length; ip += s.GetInstruction(ip).Size)
+                {
+                    var instruction = s.GetInstruction(ip);
+                    instructions.Add(instruction);
+                }
+                return instructions;
             }
-            return instructions;
+            catch
+            {
+                DebugModel debugModel = new(string.Format("Script2Instruction----txid: {0}", txid));
+                debugModel.SaveAsync().Wait();
+            }
+            return new List<Instruction>();
         }
 
         public static CallFlags Opcode2CallFlags(OpCode opCode)
@@ -155,7 +172,7 @@ namespace Neo.Plugins.VM
                 script = sb.ToArray();
             }
 
-            using (ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, settings: system.Settings))
+            using (ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, settings: system.Settings, gas: 50000000))
             {
                 if (engine.State.HasFlag(VMState.FAULT))
                 {
@@ -219,7 +236,7 @@ namespace Neo.Plugins.VM
                 script = sb.ToArray();
             }
             (string, byte, BigInteger) t = new("", 0, 0);
-            using (ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, settings: system.Settings))
+            using (ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, settings: system.Settings, gas: 50000000))
             {
                 if (engine.State.HasFlag(VMState.FAULT))
                 {
@@ -229,7 +246,15 @@ namespace Neo.Plugins.VM
                 t.Item2 = (byte)engine.ResultStack.Pop().GetInteger();
                 t.Item1 = engine.ResultStack.Pop().GetString();
             }
-            t.Item3 = GetAssetTotalSupply(system, snapshot, asset);
+            try
+            {
+                t.Item3 = GetAssetTotalSupply(system, snapshot, asset);
+
+            }
+            catch
+            {
+                t.Item3 = 0;
+            }
             return t;
         }
 
@@ -242,7 +267,7 @@ namespace Neo.Plugins.VM
                 script = sb.ToArray();
             }
             BigInteger totalSupply = 0;
-            using (ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, settings: system.Settings))
+            using (ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, settings: system.Settings, gas: 50000000))
             {
                 if (engine.State.HasFlag(VMState.FAULT))
                 {
@@ -253,6 +278,32 @@ namespace Neo.Plugins.VM
             }
             return totalSupply;
 
+        }
+
+        public static BigInteger IsSelfControl(NeoSystem system, DataCache snapshot, UInt160 asset)
+        {
+            try
+            {
+                byte[] script;
+                using (ScriptBuilder sb = new ScriptBuilder())
+                {
+                    sb.EmitDynamicCall(asset, "selfControl");
+                    script = sb.ToArray();
+                }
+                using (ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, settings: system.Settings, gas: 50000000))
+                {
+                    if (engine.State.HasFlag(VMState.FAULT))
+                    {
+                        Console.WriteLine("Error:GetNep11Info,VMState.FAULT" + asset.ToString()); //后面需要去掉，返回null
+                        return 0;
+                    }
+                    return engine.ResultStack.Pop().GetInteger();
+                }
+            }
+            catch
+            {
+                return 0;
+            }
         }
 
         public static string GetNep11Properties(NeoSystem system, DataCache snapshot, UInt160 asset, string TokenId)
@@ -272,14 +323,13 @@ namespace Neo.Plugins.VM
                 script = sb.ToArray();
             }
             var properties = "";
-            using (ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, settings: system.Settings))
+            using (ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, settings: system.Settings, gas: 50000000))
             {
                 if (engine.State.HasFlag(VMState.HALT))
                 {
                     properties = engine.ResultStack.Pop().ToJson().ToString();
                 }
             }
-
             if (!string.IsNullOrEmpty(properties))
             {
                 try
@@ -407,69 +457,92 @@ namespace Neo.Plugins.VM
             byte[] script;
             BigInteger decimals = 0;
             BigInteger balanceOf = 0;
-            //先获取decimals来确定是不是可以分割的nft，如果是可以分割的nft，那么balanceOf（usr，tokenid），反为balanceOf（usr）
-            using (ScriptBuilder sb = new ScriptBuilder())
+            try
             {
-                sb.EmitDynamicCall(asset, "decimals");
-                script = sb.ToArray();
-            }
-
-            using (ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, settings: system.Settings))
-            {
-                if (engine.State.HasFlag(VMState.HALT))
-                {
-                    decimals = engine.ResultStack.Pop().GetInteger();
-                }
-            }
-            //如果精度是0，那么tokenid一定只有一个地址拥有。查询ownerOf看是不是属于addr，是就返回1，不是就返回0
-            if (decimals == 0)
-            {
-                //如果是有精度的就查询balanceof
+                //先获取decimals来确定是不是可以分割的nft，如果是可以分割的nft，那么balanceOf（usr，tokenid），反为balanceOf（usr）
                 using (ScriptBuilder sb = new ScriptBuilder())
                 {
-                    try
-                    {
-                        sb.EmitDynamicCall(asset, "ownerOf", Convert.FromBase64String(TokenId));
-
-                    }
-                    catch
-                    {
-                        sb.EmitDynamicCall(asset, "ownerOf", TokenId);
-                    }
+                    sb.EmitDynamicCall(asset, "decimals");
                     script = sb.ToArray();
                 }
-                using (ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, settings: system.Settings))
+
+                using (ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, settings: system.Settings, gas: 50000000))
                 {
                     if (engine.State.HasFlag(VMState.HALT))
                     {
-                        var owner = new UInt160(engine.ResultStack.Pop().GetSpan().ToArray());
-                        balanceOf = owner == addr ? 1 : 0;
+                        var stackitem = engine.ResultStack.Pop();
+                        if (!stackitem.IsNull)
+                        {
+                            decimals = stackitem.GetInteger();
+                        }
+                    }
+                }
+                //如果精度是0，那么tokenid一定只有一个地址拥有。查询ownerOf看是不是属于addr，是就返回1，不是就返回0
+                if (decimals == 0)
+                {
+                    //如果是有精度的就查询balanceof
+                    using (ScriptBuilder sb = new ScriptBuilder())
+                    {
+                        try
+                        {
+                            sb.EmitDynamicCall(asset, "ownerOf", Convert.FromBase64String(TokenId));
+
+                        }
+                        catch
+                        {
+                            sb.EmitDynamicCall(asset, "ownerOf", TokenId);
+                        }
+                        script = sb.ToArray();
+                    }
+                    using (ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, settings: system.Settings, gas: 50000000))
+                    {
+                        if (engine.State.HasFlag(VMState.HALT))
+                        {
+                            var stackitem = engine.ResultStack.Pop();
+                            if (!stackitem.IsNull)
+                            {
+                                var bts = stackitem.GetSpan().ToArray();
+                                var owner_1 = new UInt160(bts);
+                                UInt160 owner_2 = null;
+                                UInt160.TryParse(UTF8Encoding.UTF8.GetString(bts), out owner_2);
+                                balanceOf = owner_1 == addr || owner_2 == addr ? 1 : 0;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    //如果是有精度的就查询balanceof
+                    using (ScriptBuilder sb = new ScriptBuilder())
+                    {
+                        try
+                        {
+                            sb.EmitDynamicCall(asset, "balanceOf", addr == null ? UInt160.Parse("0x1100000000000000000220000000000000000011") : addr, Convert.FromBase64String(TokenId));
+                        }
+                        catch
+                        {
+                            sb.EmitDynamicCall(asset, "balanceOf", addr == null ? UInt160.Parse("0x1100000000000000000220000000000000000011") : addr, TokenId);
+                        }
+                        script = sb.ToArray();
+                    }
+                    using (ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, settings: system.Settings, gas: 50000000))
+                    {
+                        if (engine.State.HasFlag(VMState.HALT))
+                        {
+                            var stackitem = engine.ResultStack.Pop();
+                            if (!stackitem.IsNull)
+                            {
+                                balanceOf = stackitem.GetInteger();
+                            }
+                        }
                     }
                 }
             }
-            else
+            catch(Exception e)
             {
-                //如果是有精度的就查询balanceof
-                using (ScriptBuilder sb = new ScriptBuilder())
-                {
-                    try
-                    {
-                        sb.EmitDynamicCall(asset, "balanceOf", addr == null ? UInt160.Parse("0x1100000000000000000220000000000000000011") : addr, Convert.FromBase64String(TokenId));
-                    }
-                    catch
-                    {
-                        sb.EmitDynamicCall(asset, "balanceOf", addr == null ? UInt160.Parse("0x1100000000000000000220000000000000000011") : addr, TokenId);
-                    }
-                    script = sb.ToArray();
-                }
-                using (ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, settings: system.Settings))
-                {
-                    if (engine.State.HasFlag(VMState.HALT))
-                    {
-                        balanceOf = engine.ResultStack.Pop().GetInteger();
-                    }
-                }
+                Loger.Warning(string.Format("Commit:{0}", e.Message));
             }
+
             return balanceOf;
         }
 
@@ -487,7 +560,7 @@ namespace Neo.Plugins.VM
             }
 
             BigInteger[] balanceOfs = new BigInteger[addrs.Length];
-            using (ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, settings: system.Settings))
+            using (ApplicationEngine engine = ApplicationEngine.Run(script, snapshot, settings: system.Settings, gas: 50000000 * addrs.Length))
             {
                 if (engine.State.HasFlag(VMState.HALT))
                 {

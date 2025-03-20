@@ -50,7 +50,7 @@ namespace Neo.Plugins.Models
             Voter = voter;
             Candidate = candidate;
             CandidatePubKey = candidatePubKey;
-            BalanceOfVoter = BsonDecimal128.Create(balanceOfVoter);
+            BalanceOfVoter = BsonDecimal128.Create(balanceOfVoter.WipeNumStrToFitDecimal128());
             LastTransferTxid = lastTransferTxid;
         }
 
@@ -62,7 +62,7 @@ namespace Neo.Plugins.Models
 
         public async static Task InitCollectionAndIndex()
         {
-            await DB.CreateCollection<VoteModel>(new CreateCollectionOptions<VoteModel>());
+            await DB.CreateCollectionAsync<VoteModel>( o => { o = new CreateCollectionOptions<VoteModel>(); });
             await DB.Index<VoteModel>().Key(a => a.Voter, KeyType.Ascending).Option(o => { o.Name = "_voter_"; }).CreateAsync();
             await DB.Index<VoteModel>().Key(a => a.BlockNumber, KeyType.Ascending).Key(a => a.Voter, KeyType.Ascending).Option(o => { o.Name = "_blockNumber_voter_"; }).CreateAsync();
             await DB.Index<VoteModel>().Key(a => a.Candidate, KeyType.Ascending).Option(o => { o.Name = "_candidate_"; }).CreateAsync();

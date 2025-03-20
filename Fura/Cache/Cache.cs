@@ -34,12 +34,14 @@ namespace Neo.Plugins.Cache
         }
         public CacheAddress cacheAddress { get; }
         public CacheAddressAsset cacheAddressAsset { get; }
+        public CacheMarket cacheMarket { get; }
         public CacheAsset cacheAsset { get; }
         public CacheCandidate cacheCandidate { get; }
         public CacheContract cacheContract { get; }
         public CacheNep11TransferNotification cacheNep11TransferNotification { get; }
         public CacheScVoteCall cacheScVoteCall { get; }
         public CacheTransferNotification cacheTransferNotification;
+        public CacheMatketNotification cacheMatketNotification;
         public CacheVote cacheVote { get; }
         public CacheScCall cacheScCall { get; }
         public CacheExecution cacheExecution { get; }
@@ -56,6 +58,9 @@ namespace Neo.Plugins.Cache
 
             cacheAddressAsset = new CacheAddressAsset();
             caches.Add(cacheAddressAsset);
+
+            cacheMarket = new CacheMarket();
+            caches.Add(cacheMarket);
 
             cacheAsset = new CacheAsset();
             caches.Add(cacheAsset);
@@ -74,6 +79,9 @@ namespace Neo.Plugins.Cache
 
             cacheTransferNotification = new CacheTransferNotification();
             caches.Add(cacheTransferNotification);
+
+            cacheMatketNotification = new CacheMatketNotification();
+            caches.Add(cacheMatketNotification);
 
             cacheVote = new CacheVote();
             caches.Add(cacheVote);

@@ -46,7 +46,7 @@ namespace Neo.Plugins.Models
 
         public async static Task InitCollectionAndIndex()
         {
-            await DB.CreateCollection<ScCallModel>(new CreateCollectionOptions<ScCallModel>());
+            await DB.CreateCollectionAsync<ScCallModel>( o => { o = new CreateCollectionOptions<ScCallModel>(); });
             await DB.Index<ScCallModel>().Key(a => a.OriginSender, KeyType.Ascending).Option(o => { o.Name = "_originSender_"; }).CreateAsync();
             await DB.Index<ScCallModel>().Key(a => a.OriginSender, KeyType.Ascending).Key(a => a.ContractHash, KeyType.Ascending).Option(o => { o.Name = "_originSender_contractHash_"; }).CreateAsync();
             await DB.Index<ScCallModel>().Key(a => a.ContractHash, KeyType.Ascending).Option(o => { o.Name = "_contractHash_"; }).CreateAsync();

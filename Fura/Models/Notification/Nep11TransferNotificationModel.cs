@@ -56,15 +56,15 @@ namespace Neo.Plugins.Models
             TokenId = tokenId;
             From = from;
             To = to;
-            Value = BsonDecimal128.Create(value.ToString());
-            FromBalanceOf = BsonDecimal128.Create(fromBalanceOf.ToString());
-            ToBalanceOf = BsonDecimal128.Create(toBalanceOf.ToString());
+            Value = BsonDecimal128.Create(value.ToString().WipeNumStrToFitDecimal128());
+            FromBalanceOf = BsonDecimal128.Create(fromBalanceOf.ToString().WipeNumStrToFitDecimal128());
+            ToBalanceOf = BsonDecimal128.Create(toBalanceOf.ToString().WipeNumStrToFitDecimal128());
             Timestamp = timestamp;
         }
 
         public async static Task InitCollectionAndIndex()
         {
-            await DB.CreateCollection<Nep11TransferNotificationModel>(new CreateCollectionOptions<Nep11TransferNotificationModel>());
+            await DB.CreateCollectionAsync<Nep11TransferNotificationModel>( o => { o = new CreateCollectionOptions<Nep11TransferNotificationModel>(); });
             await DB.Index<Nep11TransferNotificationModel>().Key(a => a.To, KeyType.Ascending).Option(o => { o.Name = "_to_"; }).CreateAsync();
             await DB.Index<Nep11TransferNotificationModel>().Key(a => a.AssetHash, KeyType.Ascending).Option(o => { o.Name = "_contract_"; }).CreateAsync();
             await DB.Index<Nep11TransferNotificationModel>().Key(a => a.AssetHash, KeyType.Ascending).Key(a => a.To, KeyType.Ascending).Option(o => { o.Name = "_contract_to_"; }).CreateAsync();

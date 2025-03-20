@@ -42,7 +42,7 @@ namespace Neo.Plugins.Models
 
         public async static Task InitCollectionAndIndex()
         {
-            await DB.CreateCollection<AddressModel>(new CreateCollectionOptions<AddressModel>());
+            await DB.CreateCollectionAsync<AddressModel>( o => { o = new CreateCollectionOptions<AddressModel>(); });
             await DB.Index<AddressModel>().Key(a => a.Address, KeyType.Ascending).Option(o => { o.Name = "_address_unique_"; o.Unique = true; }).CreateAsync();
             await DB.Index<AddressModel>().Key(a => a.FirstUseTime, KeyType.Ascending).Option(o => { o.Name = "_firstusetime_"; }).CreateAsync();
         }

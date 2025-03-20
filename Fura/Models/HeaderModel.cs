@@ -63,7 +63,7 @@ namespace Neo.Plugins.Models
 
         public async static Task InitCollectionAndIndex()
         {
-            await DB.CreateCollection<HeaderModel>(new CreateCollectionOptions<HeaderModel>());
+            await DB.CreateCollectionAsync<HeaderModel>( o => { o = new CreateCollectionOptions<HeaderModel>(); });
             await DB.Index<HeaderModel>().Key(a => a.Index, KeyType.Ascending).Option(o => { o.Name = "_index_unique_"; o.Unique = true; }).CreateAsync();
             await DB.Index<HeaderModel>().Key(a => a.Hash, KeyType.Ascending).Option(o => { o.Name = "_hash_unique_"; o.Unique = true; }).CreateAsync();
         }
@@ -79,8 +79,8 @@ namespace Neo.Plugins.Models
 
         public WitnessModel(Witness witness)
         {
-            Invocation_B64String = Convert.ToBase64String(witness.InvocationScript);
-            Verification_B64String = Convert.ToBase64String(witness.VerificationScript);
+            Invocation_B64String = Convert.ToBase64String(witness.InvocationScript.ToArray());
+            Verification_B64String = Convert.ToBase64String(witness.VerificationScript.ToArray());
         }
 
         public static WitnessModel[] ToModels(Witness[] witnesses)

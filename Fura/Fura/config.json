@@ -8,6 +8,12 @@
     "Log": false,
     "SleepTime": 10,
     "WaitTime": 120,
-    "ConnectionString": ""
+    "ConnectionString": "",
+    "MarketContractIds": [ 0, 0 ],
+    "Nep11ContractIds": [],
+    "Nep17ContractIds": [],
+    "IlexContractHashes": [],
+    "MetaContractHashes": [],
+    "NNS": ""
   }
 }

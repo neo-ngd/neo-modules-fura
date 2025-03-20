@@ -3,7 +3,7 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 using MongoDB.Entities;
-using Neo.IO.Json;
+using Neo.Json;
 using Neo.Plugins.Attribute;
 
 namespace Neo.Plugins.Models
@@ -16,10 +16,10 @@ namespace Neo.Plugins.Models
         public UInt160 Hash { get; set; }
 
         [BsonElement("id")]
-        public int _ID { get; set; }
+        public int ContractId { get; set; }
 
         [BsonElement("updatecounter")]
-        public ushort UpdateCounter { get; set; }
+        public short UpdateCounter { get; set; }
 
         [BsonElement("nef")]
         public BsonString Nef { get; set; }
@@ -39,11 +39,11 @@ namespace Neo.Plugins.Models
 
         public ContractModel() { }
 
-        public ContractModel(UInt160 hash,string name, int id, ushort updateCounter, JObject nef,JObject manifest, ulong createTime, UInt256 txid)
+        public ContractModel(UInt160 hash,string name, int id, short updateCounter, JObject nef,JObject manifest, ulong createTime, UInt256 txid)
         {
             Hash = hash;
             Name = name;
-            _ID = id;
+            ContractId = id;
             UpdateCounter = updateCounter;
             Nef = BsonString.Create(nef.ToString());
             Manifest = BsonString.Create(manifest.ToString());
@@ -53,15 +53,16 @@ namespace Neo.Plugins.Models
 
         public static ContractModel Get(UInt160 hash)
         {
-            ContractModel contractModel = DB.Find<ContractModel>().Match(c => c.Hash == hash).ExecuteFirstAsync().Result;
+            ContractModel contractModel = DB.Find<ContractModel>().Match(c => c.Hash == hash).Sort(c => c.CreateTime, Order.Descending).ExecuteFirstAsync().Result;
             return contractModel;
         }
 
         public async static Task InitCollectionAndIndex()
         {
-            await DB.CreateCollection<ContractModel>(new CreateCollectionOptions<ContractModel>());
+            await DB.CreateCollectionAsync<ContractModel>( o => { o = new CreateCollectionOptions<ContractModel>(); });
             await DB.Index<ContractModel>().Key(a => a.Hash, KeyType.Ascending).Option(o => { o.Name = "_hash_"; }).CreateAsync();
-            await DB.Index<ContractModel>().Key(a => a.Hash, KeyType.Ascending).Key(a => a.UpdateCounter, KeyType.Ascending).Option(o => { o.Name = "_hash_updatecounter_unique_"; o.Unique = true; }).CreateAsync();
+            await DB.Index<ContractModel>().Key(a => a.CreateTime, KeyType.Descending).Option(o => { o.Name = "_createtime_"; }).CreateAsync();
+            await DB.Index<ContractModel>().Key(a => a.Hash, KeyType.Ascending).Key(a => a.UpdateCounter, KeyType.Ascending).Key(a => a.CreateTxid, KeyType.Ascending).Option(o => { o.Name = "_hash_updatecounter_createtxid_unique_"; o.Unique = true; }).CreateAsync();
         }
     }
 }
