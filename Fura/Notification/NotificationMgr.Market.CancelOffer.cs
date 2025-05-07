@@ -7,6 +7,7 @@ using Neo.Plugins.Models;
 using Neo.SmartContract.Native;
 using System.Numerics;
 using Neo.Json;
+using Neo.Extensions;
 
 namespace Neo.Plugins.Notification
 {

@@ -9,8 +9,10 @@ using Neo.Persistence;
 using Neo.Plugins.Models;
 using Neo.SmartContract;
 using Neo.VM;
+using Neo.IO;
 using Neo.VM.Types;
 using System.Text.Json;
+using Neo.Extensions;
 using System.IO;
 
 namespace Neo.Plugins.VM
@@ -27,7 +29,7 @@ namespace Neo.Plugins.VM
             Votes = @struct[1].GetInteger();
         }
 
-        public StackItem ToStackItem(ReferenceCounter referenceCounter)
+        public StackItem ToStackItem(IReferenceCounter referenceCounter)
         {
             return new Struct(referenceCounter) { Registered, Votes };
         }

@@ -12,6 +12,7 @@ using System.Linq;
 using MongoDB.Bson;
 using Neo.Plugins.Cache;
 using System.Threading.Tasks;
+using Neo.Extensions;
 
 namespace Neo.Plugins
 {
