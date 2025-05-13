@@ -79,7 +79,9 @@ namespace Neo.Plugins.Notification
 
         public void Filter(List<NotificationModel> notificationModels, NeoSystem system, Block block, DataCache snapshot)
         {
-            Parallel.For(0, notificationModels.Count, (i) =>
+            int maxDegreeOfParallelism = 10;
+            var parallelOptions = new ParallelOptions { MaxDegreeOfParallelism = maxDegreeOfParallelism };
+            Parallel.For(0, notificationModels.Count, parallelOptions, (i) =>
             {
                 var notificationModel = notificationModels[i];
                 if (notificationModel.Vmstate != "HALT")
