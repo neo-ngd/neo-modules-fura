@@ -5,6 +5,7 @@ using MongoDB.Driver;
 using MongoDB.Entities;
 using Neo.Plugins.Attribute;
 using Neo.VM;
+using Neo.Extensions;
 
 namespace Neo.Plugins.Models
 {

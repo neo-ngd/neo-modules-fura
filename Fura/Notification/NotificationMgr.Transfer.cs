@@ -7,6 +7,7 @@ using Neo.Persistence;
 using Neo.Plugins.Cache;
 using Neo.Plugins.Models;
 using Neo.SmartContract.Native;
+using Neo.Extensions;
 
 namespace Neo.Plugins.Notification
 {

@@ -348,7 +348,7 @@ namespace Neo.Plugins
                     candidateModel_old = candidateModel_old.Select(c => { c.IsCommittee = false; return c; }).ToList();
                     transaction.SaveAsync(candidateModel_old).Wait();
                 }
-                using(var snapshot = system.GetSnapshot())
+                using(var snapshot = system.GetSnapshotCache())
                 {
                     //更新新的一批次
                     ECPoint[] committees = Neo.SmartContract.Native.NeoToken.NEO.GetCommittee(snapshot);
