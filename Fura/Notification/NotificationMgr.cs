@@ -79,23 +79,28 @@ namespace Neo.Plugins.Notification
 
         public void Filter(List<NotificationModel> notificationModels, NeoSystem system, Block block, DataCache snapshot)
         {
-            Console.WriteLine("Filter Start :{0}", notificationModels.Count);
             int maxDegreeOfParallelism = 10;
             var parallelOptions = new ParallelOptions { MaxDegreeOfParallelism = maxDegreeOfParallelism };
             Parallel.For(0, notificationModels.Count, parallelOptions, (i) =>
             {
-                var notificationModel = notificationModels[i];
-                if (notificationModel.Vmstate != "HALT")
+                try
                 {
-                    return;
+                    var notificationModel = notificationModels[i];
+                    if (notificationModel.Vmstate != "HALT")
+                    {
+                        return;
+                    }
+                    var key = GetKey(notificationModel.EventName);
+                    if (dic_filter.ContainsKey(key))
+                    {
+                        dic_filter[key](notificationModel, system, block, snapshot);
+                    }
                 }
-                var key = GetKey(notificationModel.EventName);
-                if (dic_filter.ContainsKey(key))
+                catch (Exception e)
                 {
-                    dic_filter[key](notificationModel, system, block, snapshot);
+                    Console.WriteLine("Error:Filter:{0}", e.Message);
                 }
             });
-            Console.WriteLine("Filter End :{0}", notificationModels.Count);
         }
 
         private EnumAssetType GetAssetType(DataCache snapshot, UInt160 hash)

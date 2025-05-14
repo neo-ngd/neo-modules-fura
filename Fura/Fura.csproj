@@ -21,7 +21,7 @@
     <PackageReference Include="MongoDB.Bson" Version="2.25.0" />
     <PackageReference Include="MongoDB.Driver" Version="2.25.0" />
     <PackageReference Include="MongoDB.Entities" Version="23.1.0" />
-    <PackageReference Include="Neo" Version="3.8.0-CI01947" />
+    <PackageReference Include="Neo" Version="3.8.1" />
   </ItemGroup>
     <ItemGroup>
       <Content Include="Fura\config.json">
