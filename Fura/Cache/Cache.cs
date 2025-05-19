@@ -103,12 +103,14 @@ namespace Neo.Plugins.Cache
 
         }
 
-        public void Reset()
+        public void Reset(uint blockIndex)
         {
             foreach(var c in caches)
             {
                 c.Clear();
             }
+
+            cacheGasMintBurn.InitBlockIndex(blockIndex);
         }
 
         public void Save(NeoSystem system, DataCache snapshot, Transaction transaction)
