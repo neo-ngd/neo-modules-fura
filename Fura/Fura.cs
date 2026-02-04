@@ -82,7 +82,7 @@ namespace Neo.Plugins
                             {
                                 //先查询这个高度有没有存过execution，如果存过了，证明是断点重连，需要排重。
                                 bool exsit = ExecutionModel.ExistByBlockHash(block.Hash);
-                                DBCache.Ins.Reset();
+                                DBCache.Ins.Reset(block.Index);
                                 if (!exsit)
                                 {
                                     Parallel.For(0, applicationExecutedList.Count, (i) =>

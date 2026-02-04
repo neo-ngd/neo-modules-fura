@@ -29,6 +29,11 @@ namespace Neo.Plugins.Cache
             GasMintBurnParams = new CacheGasMintBurnParams();
         }
 
+        public void InitBlockIndex(uint blockIndex)
+        {
+            GasMintBurnParams.BlockIndex = blockIndex;
+        }
+
         public void Save(Transaction tran)
         {
             BigInteger totalBurnAmount = 0;
@@ -40,6 +45,7 @@ namespace Neo.Plugins.Cache
                 totalBurnAmount = BigInteger.Parse(gasMintBurnModel_Pre.TotalBurnAmount.ToString());
                 totalMintAmount = BigInteger.Parse(gasMintBurnModel_Pre.TotalMintAmount.ToString());
             }
+
             GasMintBurnModel gasMintBurnModel = new GasMintBurnModel()
             {
                 BurnAmount = BsonDecimal128.Create(GasMintBurnParams.BurnAmount.ToString().WipeNumStrToFitDecimal128()),
