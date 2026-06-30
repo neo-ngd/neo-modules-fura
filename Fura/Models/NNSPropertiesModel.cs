@@ -35,5 +35,11 @@ namespace Neo.Plugins.Models
             NNSPropertiesModel nnsPropertiesModel = DB.Find<NNSPropertiesModel>().Match(a => a.Asset == asset && a.TokenId == tokenid).ExecuteFirstAsync().Result;
             return nnsPropertiesModel;
         }
+
+        public async static Task InitCollectionAndIndex()
+        {
+            await DB.CreateCollectionAsync<NNSPropertiesModel>(o => { o = new CreateCollectionOptions<NNSPropertiesModel>(); });
+            await DB.Index<NNSPropertiesModel>().Key(a => a.Asset, KeyType.Ascending).Key(a => a.TokenId, KeyType.Ascending).Option(o => { o.Name = "_asset_tokenid_"; }).CreateAsync();
+        }
     }
 }

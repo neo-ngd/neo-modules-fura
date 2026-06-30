@@ -126,5 +126,40 @@ namespace Neo.Plugins.Notification
             }
             return assetType;
         }
+
+        private static bool IsNullStackItem(NotificationStateValueModel value)
+        {
+            if (value is null) return true;
+            if (value.Value is null) return true;
+            if (value.Value.Length == 0) return true;
+            return value.Type is "Any" or "Pointer";
+        }
+
+        private static bool TryParseBase64ToScriptHash(string base64String, out UInt160 addr)
+        {
+            addr = null;
+            if (string.IsNullOrEmpty(base64String))
+                return false;
+            try
+            {
+                var bytes = Convert.FromBase64String(base64String);
+                if (bytes.Length == 0)
+                    return false;
+                if (UInt160.TryParse(bytes.Reverse().ToArray().ToHexString(), out addr))
+                    return true;
+                return UInt160.TryParse(Encoding.UTF8.GetString(bytes), out addr);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static bool TryParseNotificationHash(NotificationStateValueModel value, out UInt160 hash)
+        {
+            hash = null;
+            if (IsNullStackItem(value)) return false;
+            return TryParseBase64ToScriptHash(value.Value, out hash);
+        }
     }
 }

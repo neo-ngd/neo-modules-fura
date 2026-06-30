@@ -16,7 +16,7 @@ namespace Neo.Plugins.Notification
             if (notificationModel.ContractHash == NativeContract.ContractManagement.Hash)
             {
                 UInt160 contractHash = null;
-                bool succ = UInt160.TryParse(Convert.FromBase64String(notificationModel.State.Values[0].Value).Reverse().ToArray().ToHexString(), out contractHash);
+                bool succ = TryParseNotificationHash(notificationModel.State.Values[0], out contractHash);
                 if (!succ) return false;
                 DBCache.Ins.cacheContract.AddNeedUpdate(contractHash, block.Timestamp, notificationModel.Txid, true);
             }

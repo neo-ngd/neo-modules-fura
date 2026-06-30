@@ -50,13 +50,13 @@ namespace Neo.Plugins.Notification
 
         private void ExecuteGasSepical(NotificationModel notificationModel, NeoSystem system, Block block, DataCache snapshot)
         {
-            if (notificationModel.State.Values[1].Value is null)//gas 销毁
+            if (IsNullStackItem(notificationModel.State.Values[1]))//gas 销毁
             {
                 BigInteger value = 0;
                 BigInteger.TryParse(notificationModel.State.Values[2].Value, out value);
                 DBCache.Ins.cacheGasMintBurn.Add(block.Index, value, 0);
             }
-            if (notificationModel.State.Values[0].Value is null)//gas 增发
+            if (IsNullStackItem(notificationModel.State.Values[0]))//gas 增发
             {
                 BigInteger value = 0;
                 BigInteger.TryParse(notificationModel.State.Values[2].Value, out value);
@@ -77,12 +77,12 @@ namespace Neo.Plugins.Notification
             UInt160 to = null;
             BigInteger value = 0;
             bool succ = true;
-            if (notificationModel.State.Values[0].Value is not null)
+            if (!IsNullStackItem(notificationModel.State.Values[0]))
             {
                 succ = succ && TryParseBase64ToScriptHash(notificationModel.State.Values[0].Value, out from);
 
             }
-            if (notificationModel.State.Values[1].Value is not null)
+            if (!IsNullStackItem(notificationModel.State.Values[1]))
             {
                 succ = succ && TryParseBase64ToScriptHash(notificationModel.State.Values[1].Value, out to);
             }
@@ -118,11 +118,11 @@ namespace Neo.Plugins.Notification
             UInt160 to = null;
             BigInteger value = 0;
             bool succ = true;
-            if (notificationModel.State.Values[0].Value is not null)
+            if (!IsNullStackItem(notificationModel.State.Values[0]))
             {
                 succ = succ && TryParseBase64ToScriptHash(notificationModel.State.Values[0].Value, out from);
             }
-            if (notificationModel.State.Values[1].Value is not null)
+            if (!IsNullStackItem(notificationModel.State.Values[1]))
             {
                 succ = succ && TryParseBase64ToScriptHash(notificationModel.State.Values[1].Value, out to);
             }
@@ -161,16 +161,6 @@ namespace Neo.Plugins.Notification
             }
         }
 
-        private bool TryParseBase64ToScriptHash(string base64String, out UInt160 addr)
-        {
-            bool _succ = true;
-            _succ = UInt160.TryParse(Convert.FromBase64String(base64String).Reverse().ToArray().ToHexString(), out addr);
-            if (!_succ)
-            {
-                _succ = UInt160.TryParse(Encoding.UTF8.GetString(Convert.FromBase64String(base64String)), out addr);
-            }
-            return _succ;
-        }
     }
 }
 
