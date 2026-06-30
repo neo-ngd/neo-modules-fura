@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+env:
+  DOTNET_VERSION: 10.0.x
+
+jobs:
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore UnitFuraTest/UnitFuraTest.csproj
+
+      - name: Build
+        run: dotnet build UnitFuraTest/UnitFuraTest.csproj --no-restore -c Release
+
+      - name: Run unit tests
+        run: dotnet test UnitFuraTest/UnitFuraTest.csproj --no-build -c Release --verbosity normal

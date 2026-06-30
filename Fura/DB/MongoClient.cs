@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Security.Authentication;
@@ -38,17 +37,18 @@ namespace Neo.Plugins
 
         public static async Task InitCollectionAndIndex()
         {
-            var assembly = Assembly.Load(File.ReadAllBytes("Plugins/Fura/Fura.dll"));
+            var assembly = Assembly.GetExecutingAssembly();
 
             foreach (Type type in assembly.ExportedTypes)
             {
                 if (!type.IsSubclassOf(typeof(Entity))) continue;
                 if (type.IsAbstract) continue;
                 MethodInfo methodInfo = type.GetMethod("InitCollectionAndIndex", BindingFlags.Static | BindingFlags.Public);
+                if (methodInfo is null) continue;
                 try
                 {
-                    var t = (Task)methodInfo?.Invoke(null, null);
-                    await t;
+                    if (methodInfo.Invoke(null, null) is Task t)
+                        await t;
                 }
                 catch (Exception ex)
                 {
@@ -74,7 +74,8 @@ namespace Neo.Plugins
                 await transaction.SaveAsync(GetContractModel(snapshot, NativeContract.CryptoLib, system.GenesisBlock.Timestamp));
                 await transaction.SaveAsync(GetContractModel(snapshot, NativeContract.StdLib, system.GenesisBlock.Timestamp));
                 await transaction.SaveAsync(GetContractModel(snapshot, NativeContract.ContractManagement, system.GenesisBlock.Timestamp));
-
+                await SaveContractModelIfExists(transaction, snapshot, NativeContract.Notary, system.GenesisBlock.Timestamp);
+                await SaveContractModelIfExists(transaction, snapshot, NativeContract.Treasury, system.GenesisBlock.Timestamp);
 
                 AssetModel assetModel_gas = new(NativeContract.GAS.Hash, system.GenesisBlock.Timestamp, "GasToken", 8, "GAS", 0, EnumAssetType.NEP17);
                 AssetModel assetModel_neo = new(NativeContract.NEO.Hash, system.GenesisBlock.Timestamp, "NeoToken", 0, "NEO", 0, EnumAssetType.NEP17);
@@ -98,17 +99,33 @@ namespace Neo.Plugins
                 await transaction.SaveAsync(verifyContractModel_cryptoLib);
                 await transaction.SaveAsync(verifyContractModel_stdLib);
                 await transaction.SaveAsync(verifyContractModel_contractManagement);
+                await SaveVerifyContractIfExists(transaction, snapshot, NativeContract.Notary);
+                await SaveVerifyContractIfExists(transaction, snapshot, NativeContract.Treasury);
                 await transaction.CommitAsync();
             }
             Loger.Common("data init succ");
         }
 
-        public static  ContractModel GetContractModel(DataCache snapshot, NativeContract contract, ulong timestamp)
+        public static ContractModel GetContractModel(DataCache snapshot, NativeContract contract, ulong timestamp)
         {
             StorageKey key = new KeyBuilder(Neo.SmartContract.Native.NativeContract.ContractManagement.Id, 8).Add(contract.Hash);
-            ContractState contracStatet = snapshot.TryGet(key)?.GetInteroperable<ContractState>();
-            ContractModel contractModel = new(contract.Hash, contract.Name, contract.Id, 0, contracStatet.Nef.ToJson(), contracStatet.Manifest.ToJson(), timestamp, UInt256.Zero);
-            return contractModel;
+            ContractState contractState = snapshot.TryGet(key)?.GetInteroperable<ContractState>();
+            if (contractState is null) return null;
+            return new ContractModel(contract.Hash, contract.Name, contract.Id, 0, contractState.Nef.ToJson(), contractState.Manifest.ToJson(), timestamp, UInt256.Zero);
+        }
+
+        private static async Task SaveContractModelIfExists(MongoDB.Entities.Transaction transaction, DataCache snapshot, NativeContract contract, ulong timestamp)
+        {
+            var model = GetContractModel(snapshot, contract, timestamp);
+            if (model is not null)
+                await transaction.SaveAsync(model);
+        }
+
+        private static async Task SaveVerifyContractIfExists(MongoDB.Entities.Transaction transaction, DataCache snapshot, NativeContract contract)
+        {
+            StorageKey key = new KeyBuilder(NativeContract.ContractManagement.Id, 8).Add(contract.Hash);
+            if (snapshot.TryGet(key) is null) return;
+            await transaction.SaveAsync(new VerifyContractModel(contract.Hash, contract.Id, 0));
         }
     }
 }

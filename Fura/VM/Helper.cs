@@ -29,9 +29,9 @@ namespace Neo.Plugins.VM
             Votes = @struct[1].GetInteger();
         }
 
-        public StackItem ToStackItem(IReferenceCounter referenceCounter)
+        public StackItem ToStackItem()
         {
-            return new Struct(referenceCounter) { Registered, Votes };
+            return new Struct() { Registered, Votes };
         }
     }
 
